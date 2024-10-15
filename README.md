@@ -38,10 +38,16 @@ To maintain a smooth workflow, please adhere to the following best practices whe
 The provided `compile.sh` script simplifies the compilation process for this project. Here's how to use it:
 
 ### Help Menu
-To view the help menu for the auto compiler script, run: 
+To view the help menu for the auto compiler script, run: <br>
+**For linux**
 ```bash
-bash compile.sh -h
+./compile.sh -h
 ```
+**For Windows**
+```bash 
+.\compile.sh -h
+```
+
 
 ### Compilation Options
 - **-h:** Help menu for the script
