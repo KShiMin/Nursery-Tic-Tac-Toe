@@ -3,7 +3,7 @@
 #define PLAYER_VS_CPU_H  /* Defines PLAYER_VS_PLAYER */
 
 /* Declare global variables of player_vs_cpu.c file*/
-int playCPU();
+void playCPU();
 
 
 #endif  /* End of header file */

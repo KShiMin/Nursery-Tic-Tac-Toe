@@ -1,4 +1,4 @@
-/* Define preprocessors*/
+/* Define preprocessor statements */
 #include <stdio.h>
 
 /********************************************************
@@ -6,12 +6,9 @@ function: playCPU
 
 Input:
 
-Return: 
-
 ********************************************************/
-int playCPU()
+void playCPU()
 {
     printf("\n\nSelected game mode: Player Vs CPU");
-    return 0;
 }
 

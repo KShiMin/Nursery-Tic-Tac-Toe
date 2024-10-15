@@ -3,7 +3,7 @@
 #define PLAYER_VS_PLAYER_H  /* Defines PLAYER_VS_PLAYER */
 
 /* Declare global variables of player_vs_player.c file*/
-int playPlayer();
+void playPlayer();
 
 
 #endif  /* End of header file */

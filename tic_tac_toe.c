@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "player_vs_player.h"
 #include "player_vs_cpu.h"
+#include "game_logic.h"
 
 /* Initialise global variables */
 void main_menu();
