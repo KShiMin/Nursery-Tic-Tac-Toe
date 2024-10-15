@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 HELPSTR="Usage: $(basename "$0") [-h] [-f <file>] [-F <folder>] [-o <output>]
     -h          Show this help message. 
