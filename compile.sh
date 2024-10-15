@@ -54,7 +54,15 @@ compile_file(){
     if [ $? -eq 0 ]; then 
         echo "Compilation successful."
         echo -e  "Executing... \n\n"
-        "$SCRIPTPATH/$output"
+        if [ "$OS" = "Windows" ]; then
+            # start cmd /c "$SCRIPTPATH/$output"
+            # "$SCRIPTPATH/$output" || { echo "Execution failed."; exit 1; }
+            "$SCRIPTPATH/$output"
+            echo "\nPress Enter to continue..."
+            read -r # wait for user input 
+        else
+            "$SCRIPTPATH/$output"
+        fi
     else
         echo "Compilation failed."
         exit 1
@@ -83,6 +91,7 @@ compile_folder() {
         files+=("$file") # Add each file to the array
     done
 
+
     # Check if any C files were found 
     if [ ${#files[@]} -eq 0 ]; then
         echo "No C files found in folder $folder." 
@@ -102,7 +111,15 @@ compile_folder() {
     if [ $? -eq 0 ]; then 
         echo "Compilation successful: $output" 
         echo -e "Executing... $output \n\n"
-        "$output"
+        if [ "$OS" = "Windows" ]; then
+            # start cmd /c "$output"
+            # "$output" || { echo "Execution failed."; exit 1; }
+            "$output"
+            echo "\nPress Enter to continue..."
+            read -r # wait for user input
+        else
+            "$output"
+        fi
     else
         echo "Compilation failed."
         exit 1
