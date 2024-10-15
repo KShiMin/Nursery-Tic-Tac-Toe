@@ -1,5 +1,5 @@
 # Tic-Tac-Toe-Assignment
-This repository contains C files for a university assignment focues on implementing a Tic Tac Toe game. The project includes various game modes, such as player vs. player and player vs. CPU
+This repository contains C files for a university assignment focused on implementing a Tic Tac Toe game. The project includes various game modes, such as player vs. player and player vs. CPU
 
 ## Repository Structure 
 ``` bash
