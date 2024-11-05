@@ -64,11 +64,5 @@ dkms.conf
 
 .vscode/
 
-# ignore compiler-tools venv
-compiler/
-build/
-compile.spec
 
 
-# allow compile executable
-!compile
