@@ -63,3 +63,6 @@ dkms.conf
 !*/
 
 .vscode/
+
+# ignore compiler-tools venv
+compiler/
