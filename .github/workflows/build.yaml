@@ -28,7 +28,7 @@ jobs:
           python-version: '3.12.5'
         
       - name: Install PyInstaller 
-        run: pip installer pyinstaller 
+        run: pip install pyinstaller 
 
       - name: Build executable
         run: pyinstaller --onefile compiler-tools/compile.py
