@@ -39,6 +39,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with: 
           name: compile-${{ matrix.os }}
-          path: |
-            dist/compile.exe  # For Windows
-            dist/compile  # For Linux and macOS
+          path: dist/compile* # match any file in `dist` starting with "compile"
