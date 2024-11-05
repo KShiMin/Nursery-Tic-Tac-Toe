@@ -1,5 +1,7 @@
 /* Define preprocessor statements */
 #include <stdio.h>
+#define PLAYER1 'O'
+#define PLAYER2 'X'
 
 
 /********************************************************
@@ -60,3 +62,20 @@ int check_board_status(char board[9])
 
     return status;  /* Function returns status */
 }
+
+void printWinner(char winner) /*To announce winner or a tie*/
+{
+    if (winner == PLAYER1)
+    {
+        printf("Player O WINS!\n");
+    }
+    else if (winner == PLAYER2)
+    {
+        printf("Player X WINS!\n");
+    }
+    else
+    {
+        printf("IT'S A TIE!\n");
+    }
+}
+

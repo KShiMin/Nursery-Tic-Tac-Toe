@@ -5,5 +5,6 @@
 /* Declare global variables of player_vs_cpu.c file*/
 void print_board(char board[9]);
 int check_board_status(char board[9]);
+void printWinner(char winner);
 
 #endif  /* End of header file */

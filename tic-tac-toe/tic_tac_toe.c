@@ -36,9 +36,11 @@ void main_menu()
     {
     case 1:
         playPlayer();
+        break;
     
     case 2:
         playCPU();
+        break;
     }
 
 }
