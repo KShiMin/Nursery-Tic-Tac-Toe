@@ -31,12 +31,14 @@ jobs:
         run: pip install pyinstaller 
 
       - name: Build executable
-        run: pyinstaller --onefile compiler-tools/compile.py
+        run: |
+          pyinstaller --onefile compiler-tools/compile.py
+          ls -R dist
 
       - name: Upload executable
         uses: actions/upload-artifact@v4
         with: 
           name: compile-${{ matrix.os }}
           path: |
-            dist/compile*.exe # For windows
-            dist/compile # For Linux and macOS
+            dist/compile.exe  # For Windows
+            dist/compile  # For Linux and macOS
