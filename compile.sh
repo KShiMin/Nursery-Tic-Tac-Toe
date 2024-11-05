@@ -28,7 +28,7 @@ normalise_path() {
 # function to display help 
 display_help(){
     echo "$HELPSTR"
-    exit 0
+    stop_auto_close
 }
 
 # function to compile a single C file 
@@ -126,6 +126,10 @@ compile_folder() {
     fi
 }
 
+stop_auto_close(){
+    echo -e "\nPress Enter to continue..."
+    read -r
+}
 
 # main script logic 
 detect_os
