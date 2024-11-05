@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*' # trigger on version tags for releases
   workflow_dispatch: # Allow manual trigger
+    inputs: 
+      logLevel: 
+        description: 'Log level'
+        required: true 
+        default: 'warning'
 
 jobs: 
   build: 
