@@ -1,0 +1,38 @@
+name: Build Executables
+
+on: 
+  push:
+    tags:
+      - 'v*' # trigger on version tags for releases
+  workflow_dispatch: # Allow manual trigger
+
+jobs: 
+  build: 
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps: 
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3.12.5
+        uses: actions/setup-pythoh@v2
+        with: 
+          python-version: '3.12.5'
+        
+      - name: Install PyInstaller 
+        run: pip installer pyinstaller 
+
+      - name: Build executable
+        run: pyinstaller --onefile compiler-tools/compile.py
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v2
+        with: 
+          name: compile-${{ matrix.os }}
+          path: |
+            dist/compile*.exe # For windows
+            dist/compile # For Linux and macOS
+            
