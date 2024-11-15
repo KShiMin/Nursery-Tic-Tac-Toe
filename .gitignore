@@ -65,5 +65,6 @@ dkms.conf
 
 .vscode/
 
-
-
+# Ignore compiler script
+compile.exe 
+compile
