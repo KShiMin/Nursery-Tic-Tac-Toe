@@ -17,6 +17,9 @@
 #define STATE_DRAW 3
 #define X_PLAYER 'X'
 #define O_PLAYER 'O'
+#define PERFECT 1
+#define IMPERFECT 0
+extern int gameState;
 
 // #define WIDTH_OFFSET 50
 
@@ -30,8 +33,9 @@ void draw_markers();
 void draw_o(int row, int col);
 void draw_x(int row, int col);
 void game_over();
-
-
+void restartButton();
+void displayScoreBoard();
+void displayCurrentPlayer();
 
 
 #endif

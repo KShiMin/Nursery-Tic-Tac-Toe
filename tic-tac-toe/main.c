@@ -4,15 +4,15 @@
 /* Main program */
 int main()
 {
-    
+
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Tic Tac Toe");     /* Initialise GUI window */
-    
+
     SetTargetFPS(60);                                           /* Set GUI target FPS*/
-    
+
     while (!WindowShouldClose())        /* Run the code below as long as window is open */
         {
             BeginDrawing();
-            ClearBackground(BLACK);
+            ClearBackground(DARKBLUE);
             game_start();
             EndDrawing();
         }
