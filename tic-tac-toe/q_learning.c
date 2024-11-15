@@ -1,12 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "game_logic.h"
+// #include "gui.h"
+#include "player_vs_cpu.h"
 
-// Q-Learning Parameteres
-#define NUM_STATES 19683
-#define NUM_ACTIONS 9
-#define ALPHA 0.1
-#define GAMMA 0.9
-#define EPSILON 0.6
 
 // Initialize start of Q-table with zeros
 double qTable[NUM_STATES][NUM_ACTIONS] = {0};
@@ -52,6 +49,7 @@ int selectAIMove(int state){
 }
 
 
+// Updates Q-Table
 void updateQ(int state, int action, int reward, int next_state) {
     // Ensure that the states are within bounds
     if (state >= NUM_STATES || next_state >= NUM_STATES) {
@@ -74,31 +72,39 @@ void updateQ(int state, int action, int reward, int next_state) {
 }
 
 
-int check_endgame(char board[3][3], int *reward){
+int assign_reward(int game_state){
+    if (game_state == 1){
+        return 1; // if AI wins, reward with 1 point
+    } else if (game_state == -1){
+        return -1; //if AI lose, deduct it's point
+    } else if (game_state == 0){
+        return 0; // if AI ties, no reward is given
+    } else{
+        return 0; // Contiune game if no winner or drawn found
+    };
+}
+
+
+// Game Logic
+int check_endgame(char board[3][3]){
     // Checks rows and column for any wins
     for (int i=0; i<3; i++){
         if(board[i][0] == board[i][1] && board[i][1] == board[i][2] && board[i][0] != '-'){
-            *reward = (board[i][0] == 'X') ? 1 : -1;
-            printf("Across a Row! reward is %d\n", *reward);
-            return *reward;
+            return (board[i][0] == 'X') ? 1 : -1;
         }
         if(board[0][i] == board[1][i] && board[1][i] == board[2][i] && board[0][i] != '-'){
-            *reward = (board[0][i] == 'X') ? 1 : -1;
-            printf("Across a Column! reward is %d\n", *reward);
-            return *reward;
+            return (board[0][i] == 'X') ? 1 : -1;
         }
     }
 
     // Check diagonals for a win
     if (board[0][0] == board[1][1] && board[1][1] == board[2][2] && board[0][0] != '-') {
-        *reward = (board[0][0] == 'X') ? 1 : -1;  // +1 for X win, -1 for O win
-        printf("Across a Diagonals! reward is %d\n", *reward);
-        return *reward;
+        // combination is = {top left, middle, bottom right}
+        return (board[0][0] == 'X') ? 1 : -1;  // +1 for X win, -1 for O win
     }
     if (board[0][2] == board[1][1] && board[1][1] == board[2][0] && board[0][2] != '-') {
-        *reward = (board[0][2] == 'X') ? 1 : -1;  // +1 for X win, -1 for O win
-        printf("Across a Diagonals! reward is %d\n", *reward);
-        return *reward;
+        // combination is = {top right, middle, bottom left}
+        return (board[0][2] == 'X') ? 1 : -1; // +1 for X win, -1 for O win
     }
 
     // Check for draw (no empty spaces)
@@ -114,30 +120,12 @@ int check_endgame(char board[3][3], int *reward){
     }
 
     if (is_draw) {
-        *reward = 0;  // Neutral reward for a draw
         return 0;     // Return 0 for a draw
     }
 
-    *reward = 0;     // No reward for an ongoing game
     return 2;        // Return 2 if the game is ongoing
 }
 
-void print_board(char board[3][3])
-{
-    printf("\n\n");
-    printf("%c | %c | %c\n", board[0][0], board[0][1], board[0][2]);
-    printf("%c | %c | %c\n", board[1][0], board[1][1], board[1][2]);
-    printf("%c | %c | %c\n", board[2][0], board[2][1], board[2][2]);
-    printf("\n\n");
-}
-
-void update_board(char board[3][3], int row, int col, char curr_player)
-{
-    if (board[row][col] == '-')
-    {
-        board[row][col] = curr_player;
-    }
-}
 
 void makeMove(char board[3][3], int action, char player) {
     printf("At makeMove, action is %d\n", action);
@@ -150,7 +138,7 @@ void makeMove(char board[3][3], int action, char player) {
 
 void train(){
     printf("Training Started...\n");
-    for (int eps = 0; eps < 1000; eps ++){
+    for (int eps = 0; eps < 10000; eps ++){
         char board[3][3] = { {'-', '-', '-'}, {'-', '-', '-'}, {'-', '-', '-'} };
         int state = getState(board);
         int reward = 0;
@@ -170,8 +158,9 @@ void train(){
 
             makeMove(board, act, player);
 
-            int game_state = check_endgame(board, &reward);
+            int game_state = check_endgame(board);
             printf("game state is %d\n", game_state);
+            int reward = assign_reward(game_state);
 
             if (game_state !=2){
                 done = 1;
@@ -183,7 +172,7 @@ void train(){
 
             if (player == 'X'){
                 printf("Updating Q-table...\n");
-                updateQ(state, act, game_state, next_state);
+                updateQ(state, act, reward, next_state);
             }
 
             state = next_state;
@@ -191,8 +180,21 @@ void train(){
     }
 }
 
+void qTableResult(){
+    for (int i =0; i< NUM_STATES; i++){
+        printf("State %d: ", i);
+        for (int action = 0; action < NUM_ACTIONS; action++) {
+            printf("%.6lf ", qTable[i][action]);  // Print Q-value with 6 decimal precision
+        }
+        printf("\n");  // Newline after each state for better readability
+    }
+}
+
 int main(){
     train();
-    printf("Training completed!");
+    printf("Training completed!\n");
+    printf("Q-Table after Training\n");
+    qTableResult();
+    printf("\n");
     return 0;
 }
