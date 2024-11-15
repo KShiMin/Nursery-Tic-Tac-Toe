@@ -38,13 +38,30 @@ class Compiler:
         
     def _normalise_path(self, path: str) -> str:
         if self.__os_type == "Windows":
-            result = subprocess.run(["cygpath", "-w", path], capture_output=True, text=True)
-            normalised_path = result.stdout.strip()
-            self.logger.debug(f"Normalised path for WIndows: {normalised_path}")
-            return normalised_path
+            # check if `cygpath` exists before using it 
+            cygpath_exists = shutil.which("cygpath") is not None
+            if cygpath_exists: 
+                result = subprocess.run(["cygpath", "-w", path], capture_output=True, text=True)
+                normalised_path = result.stdout.strip()
+                self.logger.debug(f"Normalised path for Windows using cygpath: {normalised_path}")
+                return normalised_path
+            else: 
+                # if `cygpath` is not available, assume the path is already in Windows format
+                self.logger.debug(f"Path does not require normalisation: {path}")
+                return path
         
-        self.logger.debug(f"Path deos not require normalisation: {path}")
+        # for other OS types, return the path as is
+        self.logger.debug(f"Path does not require normalisation: {path}")
         return path
+        
+        # if self.__os_type == "Windows":
+        #     result = subprocess.run(["cygpath", "-w", path], capture_output=True, text=True)
+        #     normalised_path = result.stdout.strip()
+        #     self.logger.debug(f"Normalised path for WIndows: {normalised_path}")
+        #     return normalised_path
+        
+        # self.logger.debug(f"Path deos not require normalisation: {path}")
+        # return path
 
     def compile_file(self) -> None: 
         filepath = self._normalise_path(os.path.join(self.__script_path, self.file))
