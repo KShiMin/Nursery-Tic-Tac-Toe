@@ -1,4 +1,4 @@
-import argparse, os, platform, subprocess, sys, logging
+import argparse, os, platform, subprocess, sys, logging, shutil
 
 class UnsupportedOSError(Exception):
     # Custom exception for unsupported or unknown operating system.
@@ -110,7 +110,7 @@ class Compiler:
             self.logger.info(f"Executing output: {output_name}")
             if "Windows" in self.__os_type:
                 subprocess.run([output_name], shell=True)
-                input("Press enter to continue...")
+                # input("Press enter to continue...")
             else: 
                 subprocess.run([f"./{output_name}"])
         except Exception as e:
