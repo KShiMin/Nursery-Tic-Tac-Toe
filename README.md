@@ -35,7 +35,17 @@ To maintain a smooth workflow, please adhere to the following best practices whe
         - `docs: Description of documentation changes`
 
 ## Using the Auto Compiler 
-The provided `compile.sh` script simplifies the compilation process for this project. Here's how to use it:
+The auto compiler is now available as a pre-built executable in the [Releases](https://github.com/KShiMin/Nursey-Tic-Tac-Toe/releases) section of this repository. 
+Follow the steps below to use it: 
+
+### Step 1: Download the Appropriate Release
+1. Navigate to the [Releases](https://github.com/KShiMin/Nursey-Tic-Tac-Toe/releases) section of the repository.
+2. Locate the release for your operating system, e.g., `compile-windows-latest.zip`.
+3. Download the `.zip` file that matches your OS (Windows, Linux, or macOS).
+
+### Step 2: Extract and Setup
+1. Extract the contents of the `.zip` file.
+2. Move the `compile.exe` (or equivalent executable) to your working directory where your C files are located. 
 
 ### Help Menu
 To view the help menu for the auto compiler script, run: <br>
@@ -47,7 +57,6 @@ To view the help menu for the auto compiler script, run: <br>
 ```bash 
 .\compile.sh -h
 ```
-
 
 ### Compilation Options
 - **-h:** Help menu for the script
