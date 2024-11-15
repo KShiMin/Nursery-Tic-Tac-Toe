@@ -1,18 +1,18 @@
-#include "gui.h"
-#include "game_logic.h"
+#include "raylib.h"
+#include "gamelogic.h"
 #include <stdio.h>
+#include "gui.h"
 
 
-char player = X_PLAYER;
+char player = O_PLAYER;
 int gameMode = PVP;
 int gameState = STATE_MENU;
 char board[3][3] = {'-', '-', '-', '-', '-', '-', '-', '-', '-'};
+int difficulty = PERFECT;
+int num_wins = 0;
 
 /********************************************************
 function: getBoundary
-
-
-
 ********************************************************/
 int getBoundary()
 {
@@ -21,9 +21,6 @@ int getBoundary()
 
 /********************************************************
 function: getCellSize
-
-
-
 ********************************************************/
 int getCellSize()
 {
@@ -32,9 +29,6 @@ int getCellSize()
 
 /********************************************************
 function: game_start
-
-
-
 ********************************************************/
 void game_start()
 {
@@ -43,84 +37,86 @@ void game_start()
         draw_menu();
     }
 
-    else if (gameState == STATE_PLAYING)
+    else if (gameState == STATE_PLAYING && gameEnded == 0)
     {
         draw_grid();
         draw_markers();
+        displayScoreBoard();
+        displayCurrentPlayer();
         gameState = check_board_status(board);
-        
-        if (gameState == STATE_PLAYING)
+
+        if (gameState == STATE_WIN || gameState == STATE_DRAW)
+        {
+            gameEnded = 1;
+            scoreBoard();
+            game_over();
+        }
+        else
         {
             CheckMouseInput();
-            gameState = check_board_status(board);
+        }
 
-            if (gameState == STATE_PLAYING)
+        if (gameState == STATE_PLAYING)
             {
-                if (gameMode == PVC && player == O_PLAYER)
+                if (gameMode == PVC && player == X_PLAYER)
                 {
                     /* Call minimax algorithm! */
                 }
 
             }
-
-        }
-
-
     }
 
-    else
+    else if (gameEnded == 1)
     {
         draw_grid();
         draw_markers();
+        displayScoreBoard();
         game_over();
     }
-        
+
 }
 
 /********************************************************
 function: game_over
-
-
-
 ********************************************************/
 void game_over()
 {
-    Rectangle display = {300, 400, 400, 200};
+    Rectangle display = {200, 350, 600, 300};
 
     if (gameState == STATE_WIN)
     {
-        const char *text = (player == O_PLAYER) ? "X Wins" : "O Wins!";
-        DrawRectangleRec(display, LIGHTGRAY);
-        DrawText(text, 425, 450, 50, BLACK);
+        const char *text = (player == O_PLAYER) ? "Player X Wins!" : "Player O Wins!";
+        DrawRectangleRec(display, WHITE);
+        DrawText(text, 250, 450, 70, BLACK);
+        restartButton();
     }
 
     else if (gameState == STATE_DRAW)
     {
-        DrawRectangleRec(display, LIGHTGRAY);
-        DrawText("DRAW", 425, 450, 50, BLACK);
+        DrawRectangleRec(display, WHITE);
+        DrawText("It's a Draw!", 300, 450, 70, BLACK);
+        restartButton();
     }
 
 }
 
 /********************************************************
 function: draw_menu
-
-
-
 ********************************************************/
 void draw_menu()
 {
-    DrawText("Tic Tac Toe", 380, 150, 30, DARKGRAY);
+    DrawText("TIC TAC TOE", 150, 200, 100, WHITE);
+    DrawText("Choose a game mode:", 280, 350, 40, WHITE);
 
     /* PvP button */
-    Rectangle pvpButton = {380, 250, 200, 50};
-    DrawRectangleRec(pvpButton, LIGHTGRAY);
-    DrawText("Player vs Player", 400, 265, 20, BLACK);
+    Rectangle pvpButton = {240, 450, 500, 70};
+    DrawRectangleRec(pvpButton, WHITE);
+    DrawText("Player vs Player", pvpButton.x + 40, pvpButton.y + 10, 50, BLACK);
 
     /* CPU button */
-    Rectangle cpuButton = {380, 350, 200, 50};
-    DrawRectangleRec(cpuButton, LIGHTGRAY);
-    DrawText("Player vs CPU", 400, 365, 20, BLACK);
+    Rectangle cpuButton = {240, 600, 500, 70};
+    DrawRectangleRec(cpuButton, WHITE);
+    DrawText("Player vs CPU", cpuButton.x + 80, cpuButton.y + 10, 50, BLACK);
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
     {
@@ -137,16 +133,13 @@ void draw_menu()
             gameMode = PVC;
             gameState = STATE_PLAYING;
         }
-        
+
     }
 }
 
 
 /********************************************************
 function: draw_grid
-
-
-
 ********************************************************/
 void draw_grid()
 {
@@ -162,9 +155,6 @@ void draw_grid()
 
 /********************************************************
 function: CheckMouseInput
-
-
-
 ********************************************************/
 void CheckMouseInput()
 {
@@ -180,22 +170,19 @@ void CheckMouseInput()
             int col = (mousePos.x - GRID_OFFSET) / cellSize;
             while (board[row][col] == '-')
             {
-                update_board(board, row, col, player);
+                update_board(board, row, col, player); player = (player == X_PLAYER) ? O_PLAYER : X_PLAYER;
             }
-            
+
             print_board(board);
 
-            player = (player == X_PLAYER) ? O_PLAYER : X_PLAYER;
             
+
         }
     }
 }
 
 /********************************************************
 function: draw_makers
-
-
-
 ********************************************************/
 void draw_markers()
 {
@@ -221,9 +208,6 @@ void draw_markers()
 
 /********************************************************
 function: draw_o
-
-
-
 ********************************************************/
 void draw_o(int row, int col)
 {
@@ -231,14 +215,11 @@ void draw_o(int row, int col)
     int y = (cellSize * row + cellSize / 2) + GRID_OFFSET;
     int x = (cellSize * col + cellSize / 2) + GRID_OFFSET;
     DrawCircle(x, y, GRID_OFFSET/2, WHITE);
-    DrawCircle(x, y, GRID_OFFSET/2 - 1, BLACK);
+    DrawCircle(x, y, GRID_OFFSET/2 - 1, WHITE);
 }
 
 /********************************************************
 function: draw_x
-
-
-
 ********************************************************/
 void draw_x(int row, int col)
 {
@@ -247,7 +228,45 @@ void draw_x(int row, int col)
     int y2 = cellSize * (row + 1) + GRID_OFFSET - 50;
     int x1 = cellSize * col + GRID_OFFSET + 50;
     int x2 = cellSize * (col + 1) + GRID_OFFSET - 50;
-    
+
     DrawLine(x1, y1, x2, y2, WHITE);
     DrawLine(x1, y2, x2, y1, WHITE);
+}
+
+/********************************************************
+function: restartButton
+********************************************************/
+void restartButton()
+{
+    Rectangle restartButton = {350, 550, 300, 50};
+    
+    DrawRectangleRec(restartButton, LIGHTGRAY);
+    DrawText("Restart Game", 400, 560, 30, DARKGRAY);
+    
+    Vector2 mousePoint = GetMousePosition();
+    if (CheckCollisionPointRec(mousePoint, restartButton) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+    {
+        restartBoard(board);
+        gameState = STATE_PLAYING; /*To indicate game is ongoing*/
+    }
+}
+
+/********************************************************
+function: scoreBoard
+********************************************************/
+void displayScoreBoard() 
+{
+    char scoreMessage[50];
+    sprintf(scoreMessage, "Score - Player O: %d | Player X: %d", player1Score, player2Score);
+    DrawText(scoreMessage, 10, 10, 30, BLACK);
+}
+
+/********************************************************
+function: displayCurrentPlayer
+********************************************************/
+void displayCurrentPlayer()
+{
+    char turnMessage[50];
+    sprintf(turnMessage, "Player %c's Turn", player);
+    DrawText(turnMessage, 375, 75, 30, RAYWHITE);
 }
