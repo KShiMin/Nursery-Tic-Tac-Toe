@@ -109,14 +109,19 @@ void draw_menu()
     DrawText("Choose a game mode:", 280, 350, 40, WHITE);
 
     /* PvP button */
-    Rectangle pvpButton = {240, 450, 500, 70};
+    Rectangle pvpButton = {215, 450, 550, 70};
     DrawRectangleRec(pvpButton, WHITE);
-    DrawText("Player vs Player", pvpButton.x + 40, pvpButton.y + 10, 50, BLACK);
+    DrawText("Player vs Player", pvpButton.x + 85, pvpButton.y + 15, 45, BLACK);
 
     /* CPU button */
-    Rectangle cpuButton = {240, 600, 500, 70};
+    Rectangle cpuButton = {215, 600, 550, 70};
     DrawRectangleRec(cpuButton, WHITE);
-    DrawText("Player vs CPU", cpuButton.x + 80, cpuButton.y + 10, 50, BLACK);
+    DrawText("Play with Computer 1", cpuButton.x + 45, cpuButton.y + 15, 45, BLACK);
+
+    /* CPU ML button*/
+    Rectangle mlButton = {215, 750, 550, 70};
+    DrawRectangleRec(mlButton, WHITE);
+    DrawText("Play with Computer 2", mlButton.x + 45, mlButton.y + 15, 45, BLACK);
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
     {
@@ -131,6 +136,12 @@ void draw_menu()
         else if (CheckCollisionPointRec(mousePos, cpuButton))
         {
             gameMode = PVC;
+            gameState = STATE_PLAYING;
+        }
+
+        else if (CheckCollisionPointRec(mousePos, mlButton))
+        {
+            gameMode = PVML;
             gameState = STATE_PLAYING;
         }
 

@@ -11,6 +11,7 @@
 #define BUTTON_OFFSET 10
 #define PVP 1                   /* Define game mode 1 as Player vs Player */         
 #define PVC 2                   /* Define game mode 2 as Player vs Computer */ 
+#define PVML 3                  /* Define game mode 3 as Player vs Computer ML*/
 #define STATE_MENU 0
 #define STATE_PLAYING 1
 #define STATE_WIN 2
