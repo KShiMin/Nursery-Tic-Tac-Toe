@@ -8,7 +8,7 @@ char convertBoard(char board[3][3], int convertedState[3][3]){
 
     for(int i=0; i< 3; i++){
         for(int j=0; j<3; j++){
-            switch (j){
+            switch (board[i][j]){
                 case 'X':
                     convertedState[i][j] = cpu;
                     break;
