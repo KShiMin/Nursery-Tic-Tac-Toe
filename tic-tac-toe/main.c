@@ -1,23 +1,24 @@
 /* Define preprocessor statements */
-#include "gui.h" /* GUI header file */
 
-/* Main program */
+#include "gui.h"    /* Include gui header file */
+
+/* Main program - program starts here */
 int main()
 {
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Tic Tac Toe");     /* Initialise GUI window */
 
-    SetTargetFPS(60);                                           /* Set GUI target FPS*/
+    SetTargetFPS(15);                                           /* Set GUI target FPS*/
 
-    while (!WindowShouldClose())        /* Run the code below as long as window is open */
+    while (!WindowShouldClose())                                /* Run the code below while user has not requested to close window */
         {
-            BeginDrawing();
-            ClearBackground(DARKBLUE);
-            game_start();
-            EndDrawing();
+            BeginDrawing();                 /* Start drawing in GUI */
+            ClearBackground(DARKBLUE);      /* Clear the GUI with dark blue */
+            game_start();                   /* Call game_start() function from gui.c */
+            EndDrawing();                   /* End drawing in GUI */
         }
-    CloseWindow();
+    CloseWindow();                                              /* Close window */
 
-    return 0;  /* Exit program with 0 errors */
+    return 0;                                                   /* Exit program, program has executed successfully. */
 }
 
