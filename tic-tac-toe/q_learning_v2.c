@@ -1,24 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define MAX_STRINGS 100
 #define MAX_LENGTH 100
+#define QTABLE_LENGTH 1000
 
 
 const int human = 1, cpu = -1, blank = 0;
+const float lr=0.2, decay =0.9; //Q-learning parameters
 
+// defining own boolean datatye to avoid confusion
 typedef enum{
     false = 0,
     true = 1
 } Bool;
 
+// defining own coordinates datatype
 typedef struct{
     int row, col;
 } Coord;
 
-// Determine q-value of each state
-// key = 1D array of state (as a string format)
-// val = actual q-value of state
+/***
+ * Determine q-value of each state
+ * params:
+ *  - key: holds the 1D array of state as a string format
+ *  - val: holds the actual q-value of the state
+ */
 typedef struct{
     char key[9];
     float val;
@@ -29,15 +37,15 @@ typedef struct{
 typedef struct{
     
     char state[MAX_STRINGS][MAX_LENGTH]; // hold all state movements
-    Qvalue *state_val[1000]; // Array of q-values (Q-Table)
-    float lr, exp_rate, decay; //Q-learning parameters
+    Qvalue *state_val[QTABLE_LENGTH]; // Array of q-values (Q-Table)
+    float exp_rate; 
 
 } Player;
 
 // Defines variables for each game
 typedef struct{
     Bool game_status;
-    Player p1, p2; // p1 and p2 represents AI for training
+    // Player p1, p2; // p1 and p2 represents AI for training
     int playing; // starting player
 } Game;
 
@@ -84,7 +92,25 @@ void boardToString(int board[3][3], int results[9]){
     }
 }
 
-// return mem add of created array
+void copyBoard(int board[3][3], int nextBoard[3][3]){
+    for(int i = 0; i<3; i++){
+        for(int j = 0; j<3; j++){
+            nextBoard[i][j] = board[i][j];
+        }
+    }
+}
+
+/***
+ * function: availPos - creates an array of avaiable position on
+ * the tic-tac-tow board for AI to choose their next move
+ * 
+ * params:
+ *  - int board[3][3]: converted tic-tac-toe board
+ *  - Coord availCoord[9]: array of avaiable coordinates
+ * 
+ * return:
+ *  - index: number of avaiable position and it's coordinate
+ */
 int availPos(int board[3][3], Coord availCoord[9]){
     
     int index = 0;
@@ -101,10 +127,74 @@ int availPos(int board[3][3], Coord availCoord[9]){
     return index;
 }
 
-// paras: board --> convertedBoard
-void train(int board[3][3]){
-    int trainBoard[3][3] = {0};
+float getQval(int boardStr[], Player p){
+    for(int s=0; s< QTABLE_LENGTH; s++){
+        if(memcmp(boardStr, p.state_val[s]->key, 9) == 0){
+            return p.state_val[s]->val;
+        }
+    }
+    return 0; // if state is not in q-table, return default value 0
+}
 
+
+// Q-learning algo, playerSym = player symbol
+Coord playerAction(Coord position[], int pos_index,int board[3][3], int playerSym, Player p){
+    int rand_val = rand();
+    int val_max = -999;
+    Coord action = position[0];
+    
+    // Exploration
+    if((double) rand_val / RAND_MAX < p.exp_rate){
+        int rand_index = rand() % pos_index;
+        printf("random index = %d\n", rand_index);
+        return position[rand_index];
+    }
+
+    for (int i=0; i < pos_index; i++){
+        int nextBoard[3][3];
+        int board1D[9];
+        
+        copyBoard(board, nextBoard);
+        nextBoard[position[i].row][position[i].col] = playerSym; // place player symbol on respective gride
+        
+
+        boardToString(nextBoard, board1D); // convert board to 1D array
+        
+        // Getting q-value for respective state
+        float state_val = getQval(board1D, p);
+
+        if(state_val > val_max){
+            val_max = state_val;
+            action = position[i];
+        }
+    }
+
+    return action;
+
+}
+// paras: board --> convertedBoard, episode - amt of game rounds
+// Training qlearning
+void train(int board[3][3], int episode){
+    
+    Player players[2];
+
+    for (int i=0; i<episode; i++){
+        printf("Training Round %d\n", i);
+        Game game = {
+            game_status: false,
+            playing: 1 // players will be represented as 1 or -1
+        };
+
+        // 
+        while(!game.game_status){   // while game not end
+            for(int p=0; p<2; p++){
+                Coord avail_pos[9];
+                int pos_index = availPos(board, avail_pos);
+
+            }
+        }   
+
+    }
 }
 
 int main(){
@@ -130,9 +220,18 @@ int main(){
     Coord test[9];
 
     int test_index = availPos(convertedState, test);
-    for (int i=0; i< test_index; i++){
-        printf("Coordinate %d: (%d, %d)\n", i, test[i].row, test[i].col);
-    }
+    // for (int i=0; i< test_index; i++){
+    //     printf("Coordinate %d: (%d, %d)\n", i, test[i].row, test[i].col);
+    // }
+    printf("Test Index is %d\n", test_index);
+
+    Player p1 = {
+        state: {},
+        state_val: {},
+        exp_rate: 0.3
+    };
+    Coord pos = playerAction(test, test_index,convertedState, -1, p1);
+    printf("Row: %d, Column: %d\n", pos.row, pos.col);
 
     return 0;
 }
