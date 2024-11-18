@@ -63,3 +63,15 @@ dkms.conf
 !*/
 
 .vscode/
+
+# ignore python venv 
+nb/
+
+# ignore all .pkl files 
+*.pkl
+
+# ignore all .csv files 
+*.csv
+
+# ignore all pycache
+__pycache__

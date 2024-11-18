@@ -7,7 +7,7 @@ def training():
     board = Board(p1, p2)
     print("Training..")
 
-    board.train(rounds=100000)
+    board.train(rounds=30000)
     p1.save("ai_player.pkl")
 
 
