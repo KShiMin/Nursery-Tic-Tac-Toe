@@ -4,7 +4,7 @@
 
 #define MAX_STRINGS 100 // num of string array can hold
 #define MAX_LENGTH 9 // how long of a string it can hold
-#define QTABLE_LENGTH 5000
+#define QTABLE_LENGTH 5000 // max possible amount of states in q table
 
 
 const float lr=0.2, decay =0.9; //Q-learning parameters
@@ -35,7 +35,7 @@ typedef struct{
  *  - val: holds the actual q-value of the state
  */
 typedef struct{
-    char key[9]; 
+    int key[9]; // change data type to int instead of char 
     float val;
 
 } Qvalue;
@@ -62,13 +62,24 @@ void initPlayer(Player *player, float exp_rate){
     printf("Initialising Player...\n");
     // initalise empty state array
     for (int i=0 ; i < MAX_STRINGS; i++){
-        player->state[i][0] = '\0'; // setting states to 0
+
+        // change initialisation of state to set every state to contain an
+        // array of 0 instead.
+        for (int j=0; j < MAX_LENGTH; j++){
+            player->state[i][j] = 0;
+        }
     }
 
     // initalise Q-Table with 0
     for(int i=0; i < QTABLE_LENGTH; i++){
         player->state_val[i] = malloc(sizeof(Qvalue)); // allocate memory for each Q-value
 
+        // stop the program before memory overflow (buffer over flow attack :\)
+        if (!player->state_val[i]){
+            fprintf(stderr, "Memory allocation failed\n");
+            exit(EXIT_FAILURE);
+        }
+        
         if(player->state_val[i] != NULL){
             // Initialize key and value
             memset(player->state_val[i]->key, 0, sizeof(player->state_val[i]->key)); // Set key to empty
@@ -117,7 +128,7 @@ void printConvertedBoard(int convertedState[3][3]) {
 void boardToString(int board[3][3], int results[9]){
     int index = 0;
 
-    printf("Converting Board to 1d array...\n");
+    // printf("Converting Board to 1d array...\n");
 
     for(int i = 0; i<3; i++){
         for(int j = 0; j<3; j++){
@@ -125,7 +136,7 @@ void boardToString(int board[3][3], int results[9]){
             index++;
         }
     }
-    printf("Board Converted\n");
+    // printf("Board Converted\n");
 }
 
 void copyBoard(int board[3][3], int nextBoard[3][3]){
@@ -151,7 +162,7 @@ int availPos(int board[3][3], Coord availCoord[9]){
     
     int index = 0;
 
-    printf("Getting Available Position...\n");
+    // printf("Getting Available Position...\n");
 
     for(int i = 0; i<3; i++){
         for(int j = 0; j<3; j++){
@@ -186,12 +197,12 @@ Coord playerAction(Coord position[], int pos_index,int board[3][3], int playerSy
     int val_max = -999;
     Coord action = position[0];
     
-    printf("\nIn playerAction Function\n");
+    // printf("\nIn playerAction Function\n");
 
     // Exploration
     if((double) rand_val / RAND_MAX < p.exp_rate){
         int rand_index = rand() % pos_index;
-        printf("random index = %d\n", rand_index);
+        // printf("random index = %d\n", rand_index);
         return position[rand_index];
     }
 
@@ -220,7 +231,7 @@ Coord playerAction(Coord position[], int pos_index,int board[3][3], int playerSy
 
 // Update Board State
 void updateBoardState(int board[3][3], Coord action, Game* game){
-    printf("Updating Board...\n Original player: %d\n", game->playing);
+    // printf("Updating Board...\n Original player: %d\n", game->playing);
     board[action.row][action.col] = game->playing;
     game->playing = -game->playing; // switch player
     printf("Board Updated\n New Player: %d\n", game->playing);
@@ -229,11 +240,48 @@ void updateBoardState(int board[3][3], Coord action, Game* game){
 // Add state to current player
 void addState(Player* p, int board1d[9]){
     for(int i=0; i<MAX_STRINGS; i++){
-        if(p->state[i] == 0){
+        // fix state[i] == 0 to state[i][0] to check if array `element` is empty
+        // instead of array is empty
+        if(p->state[i][0] == 0){ 
             for(int j=0; j<9; j++){
-                p->state[i][j] = board1d[j]; //copy 1d array to state
+                p->state[i][j] = board1d[j]; //copy 1d array to stat
             }
+            printf("State Added\n");
             break;
+        }
+    }
+}
+
+// check if state is in the q table
+Bool checkState(int state[MAX_LENGTH], Qvalue *state_Val[QTABLE_LENGTH]){
+    for (int i=0; i<QTABLE_LENGTH; i++){
+        // if size of the state is the same as the size of the key in state_val
+        if (memcmp(state, state_Val[i]->key, sizeof(state[i])) == 0){ 
+            return true;
+        }
+    }
+    return false;
+}
+
+void defaultQValue(Qvalue* q_table[QTABLE_LENGTH], int state[]){
+    for (int i=0; i<QTABLE_LENGTH; i++){
+        int zeroArray[9] ={0};
+        // check key if key is empty
+        if(memcmp(q_table[i]->key, zeroArray, 9 * sizeof(int)) == 0){
+            // copy state to q_table and set value to 0
+            for (int j=0; j<9; j++){
+                q_table[i]->key[j] = state[j];
+            }
+            q_table[i]->val = 0.0f;
+        }
+    }
+}
+
+// find the index of the state in the q table
+int findQValue(int state[MAX_LENGTH], Qvalue *q_table[QTABLE_LENGTH]){
+    for (int i=0; i<QTABLE_LENGTH; i++){
+        if (memcmp(q_table[i]->key, state, sizeof(state[i])) == 0){
+            return i;
         }
     }
 }
@@ -252,21 +300,21 @@ void updateQtable(Player *p, int winner){
     }
 
     printf("Player %d, reward = %f\n", winner, reward);
-    printf("Updating Q-table...\n");
+    // printf("Updating Q-table...\n");
 
     // loop through states in reserve order [last element first]
     for(int i=MAX_STRINGS-1; i>=0; i--){
-        // Calculation of Q-value
-        p->state_val[i]->val += lr * (decay*reward - p->state_val[i]->val);
-        printf("%d, key=%s, value=%f", i, p->state_val[i]->key,p->state_val[i]->val);
-        printf("\n");
+        if (checkState(p->state[i], p->state_val) == false){
+            defaultQValue(p->state_val, p->state[i]);
+        }
+        p->state_val[findQValue(p->state[i], p->state_val)]->val += lr * (decay*reward - p->state_val[findQValue(p->state[i], p->state_val)]->val);
     }
 }
 
 int check_win(int board[3][3], Game* game){
     int diag_sum1 = 0, diag_sum2 = 0;
 
-    printf("Checking for winner...\n");
+    // printf("Checking for winner...\n");
 
     // Check rows and columns
     for(int i=0; i<3;i++){
@@ -308,13 +356,31 @@ int check_win(int board[3][3], Game* game){
 
     Coord avail_pos[9];
     int pos_index = availPos(board, avail_pos);
-    printf("At check_win, available position = %d", pos_index);
+    // printf("At check_win, available position = %d", pos_index);
     if(pos_index == 0){
         game->game_status = true;
         return 0; // if no winner, game is tie
     }
-    printf("There is no winner, game contiunes.\n");
+    // printf("There is no winner, game contiunes.\n");
     return -99; // Game contiunes
+}
+
+void reset(Player player[2], int board[3][3]){
+    // reset player state
+    for (int p=0; p<2; p++){
+        for (int i=0; i<MAX_STRINGS; i++){
+            for (int j=0; j<MAX_LENGTH; j++){
+                player[p].state[i][j] = 0;
+            }
+        }
+    }
+
+    // reset board
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            board[i][j] = 0;
+        }
+    }
 }
 
 // paras: board --> convertedBoard, episode - amt of game rounds
@@ -335,15 +401,12 @@ void train(int episode){
         printf("Training Round %d\n", i+1);
         Game game = {
             game_status: false,
-            // p1: &players[0],
-            // p2: &players[1],
             playing: 1 // players will be represented as 1 or -1
         };
-        
+        reset(players, board);
         printf("New Board:\n");
         printConvertedBoard(board);
 
-        // 
         while(!game.game_status){   // while game not end
             for(int p=0; p<2; p++){
                 int board1d[9];
@@ -352,7 +415,7 @@ void train(int episode){
                 Coord action = playerAction(avail_pos, pos_index, board, game.playing, players[p]);
 
 
-                printf("Current Player is %d\n", game.playing);
+                // printf("Current Player is %d\n", game.playing);
                 
                 updateBoardState(board, action, &game);
                 
@@ -363,7 +426,7 @@ void train(int episode){
                 addState(&players[p],board1d);
 
                 // need to switch players manually
-                printf("New Player is %d\n", game.playing);
+                // printf("New Player is %d\n", game.playing);
 
                 int win = check_win(board, &game);
                 printf("Win int is %d\n", win);
@@ -377,53 +440,13 @@ void train(int episode){
         }  
         printf("Final Board look:\n");
         printConvertedBoard(board); 
-        // reset board to 0
-        for (int i=0; i<3; i++){
-            for(int j=0; j<3; j++){
-                board[i][j] = 0;
-            }
-        }
+
     }
 }
 
 int main(){
 
     train(2);
-    // char board[3][3] = {
-    //     {'X', 'O', 'X'},
-    //     {'-', 'O', '-'},
-    //     {'-', 'X', 'O'}
-    // };
-
-    // int convertedState[3][3];
-    // convertBoard(board, convertedState);
-
-    // printf("Converted Board:\n");
-    // printConvertedBoard(convertedState);
-
-    // int results[9];
-    // boardToString(convertedState, results);
-
-    // for(int i=0; i<9; i++){
-    //     printf("%d ", results[i]);
-    // }
-
-    // Coord test[9];
-
-    // int test_index = availPos(convertedState, test);
-    // for (int i=0; i< test_index; i++){
-    //     printf("Coordinate %d: (%d, %d)\n", i, test[i].row, test[i].col);
-    // }
-    // printf("Test Index is %d\n", test_index);
-
-    // Player p1;
-    // initPlayer(&p1, 0.3);
-
-    // Coord pos = playerAction(test, test_index,convertedState, -1, p1);
-    // printf("Row: %d, Column: %d\n", pos.row, pos.col);
-
-    // float winner = 0;
-    // updateQtable(&p1, winner);
 
     return 0;
 }
