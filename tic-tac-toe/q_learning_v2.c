@@ -35,7 +35,7 @@ typedef struct{
  *  - val: holds the actual q-value of the state
  */
 typedef struct{
-    char key[9];
+    char key[9]; 
     float val;
 
 } Qvalue;
@@ -52,9 +52,10 @@ typedef struct{
 // Defines variables for each game
 typedef struct{
     Bool game_status;
-    // Player p1, p2; // p1 and p2 represents AI for training
+    Player p1, p2; // p1 and p2 represents AI for training
     int playing; // starting player
 } Game;
+
 
 // Initialise Player object
 void initPlayer(Player *player, float exp_rate){
@@ -67,6 +68,12 @@ void initPlayer(Player *player, float exp_rate){
     // initalise Q-Table with 0
     for(int i=0; i < QTABLE_LENGTH; i++){
         player->state_val[i] = malloc(sizeof(Qvalue)); // allocate memory for each Q-value
+
+        if(player->state_val[i] != NULL){
+            // Initialize key and value
+            memset(player->state_val[i]->key, 0, sizeof(player->state_val[i]->key)); // Set key to empty
+            player->state_val[i]->val = 0.0f;                                       // Set default value
+        }
     }
 
     // set exploration rate
@@ -163,7 +170,9 @@ int availPos(int board[3][3], Coord availCoord[9]){
 
 float getQval(int boardStr[], Player p){
     for(int s=0; s< QTABLE_LENGTH; s++){
+        // printf("At getQval, key is %c and setting value for it\n", p.state_val[s]->key);
         if(memcmp(boardStr, p.state_val[s]->key, 9) == 0){
+            printf("Value set");
             return p.state_val[s]->val;
         }
     }
@@ -177,6 +186,8 @@ Coord playerAction(Coord position[], int pos_index,int board[3][3], int playerSy
     int val_max = -999;
     Coord action = position[0];
     
+    printf("\nIn playerAction Function\n");
+
     // Exploration
     if((double) rand_val / RAND_MAX < p.exp_rate){
         int rand_index = rand() % pos_index;
@@ -208,17 +219,17 @@ Coord playerAction(Coord position[], int pos_index,int board[3][3], int playerSy
 }
 
 // Update Board State
-void updateBoardState(int board[3][3], Coord action, Game game){
-    printf("Updating Board...\n");
-    board[action.row][action.col] = game.playing;
-    game.playing = -game.playing; // switch player
-    printf("Board Updated\n");
+void updateBoardState(int board[3][3], Coord action, Game* game){
+    printf("Updating Board...\n Original player: %d\n", game->playing);
+    board[action.row][action.col] = game->playing;
+    game->playing = -game->playing; // switch player
+    printf("Board Updated\n New Player: %d\n", game->playing);
 }
 
 // Add state to current player
 void addState(Player* p, int board1d[9]){
     for(int i=0; i<MAX_STRINGS; i++){
-        if(p->state[i] == '\0'){
+        if(p->state[i] == 0){
             for(int j=0; j<9; j++){
                 p->state[i][j] = board1d[j]; //copy 1d array to state
             }
@@ -227,9 +238,35 @@ void addState(Player* p, int board1d[9]){
     }
 }
 
+// Updating Q table values
+void updateQtable(Player *p, int winner){
+    
+    float reward;
+    
+    if(winner == 1){
+        reward = 0; // Human Win
+    } else if(winner == -1){
+        reward = 1; // CPU win
+    } else{
+        reward = 0.5; //tie
+    }
+
+    printf("Player %d, reward = %f\n", winner, reward);
+    printf("Updating Q-table...\n");
+
+    // loop through states in reserve order [last element first]
+    for(int i=MAX_STRINGS-1; i>=0; i--){
+        // Calculation of Q-value
+        p->state_val[i]->val += lr * (decay*reward - p->state_val[i]->val);
+        printf("%d, key=%s, value=%f", i, p->state_val[i]->key,p->state_val[i]->val);
+        printf("\n");
+    }
+}
 
 int check_win(int board[3][3], Game* game){
     int diag_sum1 = 0, diag_sum2 = 0;
+
+    printf("Checking for winner...\n");
 
     // Check rows and columns
     for(int i=0; i<3;i++){
@@ -241,11 +278,13 @@ int check_win(int board[3][3], Game* game){
         }
 
         if (abs(row_sum) == 3){
+            printf("Row Across Won!\n");
             game->game_status = true;
             return row_sum > 0 ? 1: -1;
         }
 
         if (abs(col_sum) == 3){
+            printf("Column Across Won!\n");
             game->game_status = true;
             return col_sum > 0? 1: -1;
         }
@@ -256,22 +295,25 @@ int check_win(int board[3][3], Game* game){
     }
 
     if (abs(diag_sum1) == 3){
+        printf("Diagonally Across Won! Top Left to Bottom Right!\n");
         game->game_status = true;
         return diag_sum1 > 0 ? 1: -1;
     }
 
     if (abs(diag_sum2) == 3){
+        printf("Diagonally Across Won! Top Right to Bottom Left!\n");
         game->game_status = true;
         return diag_sum2 > 0 ? 1: -1;
     }
 
     Coord avail_pos[9];
     int pos_index = availPos(board, avail_pos);
+    printf("At check_win, available position = %d", pos_index);
     if(pos_index == 0){
         game->game_status = true;
         return 0; // if no winner, game is tie
     }
-
+    printf("There is no winner, game contiunes.\n");
     return -99; // Game contiunes
 }
 
@@ -287,12 +329,19 @@ void train(int episode){
         initPlayer(&players[p],0.3);
     }
 
+    printf("\n");
+
     for (int i=0; i<episode; i++){
-        printf("Training Round %d\n", i);
+        printf("Training Round %d\n", i+1);
         Game game = {
             game_status: false,
+            // p1: &players[0],
+            // p2: &players[1],
             playing: 1 // players will be represented as 1 or -1
         };
+        
+        printf("New Board:\n");
+        printConvertedBoard(board);
 
         // 
         while(!game.game_status){   // while game not end
@@ -301,36 +350,56 @@ void train(int episode){
                 Coord avail_pos[9];
                 int pos_index = availPos(board, avail_pos);
                 Coord action = playerAction(avail_pos, pos_index, board, game.playing, players[p]);
+
+
+                printf("Current Player is %d\n", game.playing);
                 
-                updateBoardState(board, action, game);
+                updateBoardState(board, action, &game);
                 
+                printConvertedBoard(board);
+
                 boardToString(board, board1d);
 
                 addState(&players[p],board1d);
 
-                int win = check_win(board, &game);
-                if(!win == -99){
+                // need to switch players manually
+                printf("New Player is %d\n", game.playing);
 
+                int win = check_win(board, &game);
+                printf("Win int is %d\n", win);
+                if(win != -99){
+                    printf("There's a winner!\n\n");
+                    updateQtable(&players[p], win);
+                    break;
                 };
                 
             }
-        }   
-
+        }  
+        printf("Final Board look:\n");
+        printConvertedBoard(board); 
+        // reset board to 0
+        for (int i=0; i<3; i++){
+            for(int j=0; j<3; j++){
+                board[i][j] = 0;
+            }
+        }
     }
 }
 
 int main(){
-    char board[3][3] = {
-        {'X', 'O', 'X'},
-        {'-', 'O', '-'},
-        {'-', 'X', 'O'}
-    };
 
-    int convertedState[3][3];
-    convertBoard(board, convertedState);
+    train(2);
+    // char board[3][3] = {
+    //     {'X', 'O', 'X'},
+    //     {'-', 'O', '-'},
+    //     {'-', 'X', 'O'}
+    // };
 
-    printf("Converted Board:\n");
-    printConvertedBoard(convertedState);
+    // int convertedState[3][3];
+    // convertBoard(board, convertedState);
+
+    // printf("Converted Board:\n");
+    // printConvertedBoard(convertedState);
 
     // int results[9];
     // boardToString(convertedState, results);
@@ -339,19 +408,22 @@ int main(){
     //     printf("%d ", results[i]);
     // }
 
-    Coord test[9];
+    // Coord test[9];
 
-    int test_index = availPos(convertedState, test);
+    // int test_index = availPos(convertedState, test);
     // for (int i=0; i< test_index; i++){
     //     printf("Coordinate %d: (%d, %d)\n", i, test[i].row, test[i].col);
     // }
-    printf("Test Index is %d\n", test_index);
+    // printf("Test Index is %d\n", test_index);
 
-    Player p1;
-    initPlayer(&p1, 0.3);
+    // Player p1;
+    // initPlayer(&p1, 0.3);
 
-    Coord pos = playerAction(test, test_index,convertedState, -1, p1);
-    printf("Row: %d, Column: %d\n", pos.row, pos.col);
+    // Coord pos = playerAction(test, test_index,convertedState, -1, p1);
+    // printf("Row: %d, Column: %d\n", pos.row, pos.col);
+
+    // float winner = 0;
+    // updateQtable(&p1, winner);
 
     return 0;
 }
