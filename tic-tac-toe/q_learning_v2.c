@@ -254,10 +254,10 @@ void addState(Player* p, int board1d[9]){
 }
 
 // check if state is in the q table
-Bool checkState(int state[MAX_LENGTH], Qvalue *state_Val[QTABLE_LENGTH]){
+Bool checkState(int state[MAX_LENGTH], Qvalue *q_table[QTABLE_LENGTH]){
     for (int i=0; i<QTABLE_LENGTH; i++){
         // if size of the state is the same as the size of the key in state_val
-        if (memcmp(state, state_Val[i]->key, sizeof(state[i])) == 0){ 
+        if (memcmp(state, q_table[i]->key, MAX_LENGTH*sizeof(int)) == 0){ 
             return true;
         }
     }
@@ -265,26 +265,37 @@ Bool checkState(int state[MAX_LENGTH], Qvalue *state_Val[QTABLE_LENGTH]){
 }
 
 void defaultQValue(Qvalue* q_table[QTABLE_LENGTH], int state[]){
+    int zeroArray[9] = {0}; // array to check for empty key 
+
     for (int i=0; i<QTABLE_LENGTH; i++){
-        int zeroArray[9] ={0};
         // check key if key is empty
         if(memcmp(q_table[i]->key, zeroArray, 9 * sizeof(int)) == 0){
             // copy state to q_table and set value to 0
-            for (int j=0; j<9; j++){
-                q_table[i]->key[j] = state[j];
-            }
+            // for (int j=0; j<9; j++){
+            //     q_table[i]->key[j] = state[j];
+            // }
+            memcpy(q_table[i]->key, state, 9*sizeof(int));
             q_table[i]->val = 0.0f;
+            
+            printf("Default value set the Q-value at index %d\n", i);
+            return; // exit after updating the first empty entry 
         }
     }
+
+    printf("No empty slot found in Q-table\n.");
 }
 
 // find the index of the state in the q table
 int findQValue(int state[MAX_LENGTH], Qvalue *q_table[QTABLE_LENGTH]){
     for (int i=0; i<QTABLE_LENGTH; i++){
-        if (memcmp(q_table[i]->key, state, sizeof(state[i])) == 0){
+        if (memcmp(q_table[i]->key, state, MAX_LENGTH * sizeof(int)) == 0){
+            // printf("Q Value index: %d\n\n", i);
             return i;
         }
     }
+
+    printf("State not found in Q-table.\n");
+    return -1; // Return -1 if not found
 }
 
 // Updating Q table values
@@ -300,16 +311,20 @@ void updateQtable(Player *p, int winner){
         reward = 0.5; //tie
     }
 
-    printf("Updating Q-Table...");
+    printf("Updating Q-Table...\n");
 
     // loop through states in reserve order [last element first]
     for(int i=MAX_STRINGS-1; i>=0; i--){
         if (checkState(p->state[i], p->state_val) == false){
             defaultQValue(p->state_val, p->state[i]);
         }
-        p->state_val[findQValue(p->state[i], p->state_val)]->val += lr * (decay*reward - p->state_val[findQValue(p->state[i], p->state_val)]->val);
+        int Q_index = findQValue(p->state[i], p->state_val);
+
+        if (Q_index != -1){
+            p->state_val[Q_index]->val += lr * (decay*reward - p->state_val[Q_index]->val);
+        }
     }
-    printf("Q-Table Updated");
+    printf("Q-Table Updated\n");
 }
 
 int check_win(int board[3][3], Game* game){
@@ -413,6 +428,26 @@ void readCSV(){
 
 }
 
+void saveQTable(Qvalue *q_table[QTABLE_LENGTH], const char *filename){
+    FILE *file = fopen(filename, "wb");
+    if (!file) {
+        perror("Filed to open file for savimg Q-table");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i=0; i<QTABLE_LENGTH; i++){
+        if (q_table[i] != NULL){
+            // write key 
+            fwrite(q_table[i]->key, sizeof(int), MAX_LENGTH, file);
+            // write the value
+            fwrite(&(q_table[i]->val), sizeof(float), 1, file);
+        }
+    }
+
+    fclose(file);
+    printf("Q-table saved sucessfully to %s\n", filename);
+}
+
 // paras: episode --> number of game rounds for training
 // Training qlearning
 void train(int episode){
@@ -469,12 +504,13 @@ void train(int episode){
         printConvertedBoard(board); 
 
     }
-    savetoCSV(players[0].state_val, "player0_qtable.csv");
+    // savetoCSV(players[0].state_val, "player0_qtable.csv");
+    saveQTable(players[0].state_val, "q_table.bin");
 }
 
 int main(){
 
-    train(2);
+    train(500);
 
     return 0;
 }
