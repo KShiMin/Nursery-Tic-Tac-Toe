@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_STRINGS 100 // num of string array can hold
+#define MAX_STRINGS 10000 // num of string array can hold
 #define MAX_LENGTH 9 // how long of a string it can hold
 #define QTABLE_LENGTH 5000 // max possible amount of states in q table
 
@@ -235,7 +235,7 @@ void updateBoardState(int board[3][3], Coord action, Game* game){
     // printf("Updating Board...\n Original player: %d\n", game->playing);
     board[action.row][action.col] = game->playing;
     game->playing = -game->playing; // switch player
-    printf("Board Updated\n New Player: %d\n", game->playing);
+    printf("Board Updated");
 }
 
 // Add state to current player
@@ -300,7 +300,7 @@ void updateQtable(Player *p, int winner){
         reward = 0.5; //tie
     }
 
-    printf("Player %d, reward = %f\n", winner, reward);
+    printf("Updating Q-Table...");
 
     // loop through states in reserve order [last element first]
     for(int i=MAX_STRINGS-1; i>=0; i--){
@@ -308,8 +308,8 @@ void updateQtable(Player *p, int winner){
             defaultQValue(p->state_val, p->state[i]);
         }
         p->state_val[findQValue(p->state[i], p->state_val)]->val += lr * (decay*reward - p->state_val[findQValue(p->state[i], p->state_val)]->val);
-        printf("%d, %f\n", p->state[i],p->state_val[findQValue(p->state[i], p->state_val)]->val);
     }
+    printf("Q-Table Updated");
 }
 
 int check_win(int board[3][3], Game* game){
@@ -383,8 +383,8 @@ void reset(Player player[2], int board[3][3]){
 }
 
 // Save Q-table values to be used
-void savetoCSV(Player *players) {
-    FILE *data = fopen("qtable_data.csv", "w");
+void savetoCSV(Qvalue *state_val[QTABLE_LENGTH], const char *filename) {
+    FILE *data = fopen(filename, "w");
 
     if (data == NULL) {
         printf("Error: Unable to open file for writing.\n");
@@ -392,22 +392,19 @@ void savetoCSV(Player *players) {
     }
 
     // Header
-    fprintf(data, "cell_1,cell_2,cell_3,cell_4,cell_5,cell_6,cell_7,cell_8,cell_9,Q-Value\n");
+    // fprintf(data, "cell_1,cell_2,cell_3,cell_4,cell_5,cell_6,cell_7,cell_8,cell_9,Q-Value\n");
 
-    // for (int p = 0; p < 2; p++) {
-    for (int i = 0; i < QTABLE_LENGTH; i++) {
-        if (players[0].state_val[i] != NULL) {
-            // Write each state's key and Q-value
-            for (int j = 0; j < 9; j++) {
-                fprintf(data, "%d", players[0].state_val[i]->key[j]);
-                if (j < 8) fprintf(data, ","); // Add a space between elements
+    for(int i=0; i<QTABLE_LENGTH; i++){
+        if(state_val[i] != NULL && state_val[i]->key[0] != 0){
+            for(int j=0; j<9; j++){
+                fprintf(data, "%d,", state_val[i]->key[j]); //get all grid placed and separate with a comma
             }
-            fprintf(data, ",%f\n", players[0].state_val[i]->val);
+            fprintf(data, "%f\n", state_val[i]->val); // store the q-value
         }
     }
-    // }
 
     fclose(data);
+    printf("Q-table saved to %s\n", filename);
 }
 
 
@@ -472,7 +469,7 @@ void train(int episode){
         printConvertedBoard(board); 
 
     }
-    savetoCSV(players);
+    savetoCSV(players[0].state_val, "player0_qtable.csv");
 }
 
 int main(){
