@@ -206,6 +206,7 @@ Coord playerAction(Coord position[], int pos_index,int board[3][3], int playerSy
         return position[rand_index];
     }
 
+    // Exploitation
     for (int i=0; i < pos_index; i++){
         int nextBoard[3][3];
         int board1D[9];
@@ -300,7 +301,6 @@ void updateQtable(Player *p, int winner){
     }
 
     printf("Player %d, reward = %f\n", winner, reward);
-    // printf("Updating Q-table...\n");
 
     // loop through states in reserve order [last element first]
     for(int i=MAX_STRINGS-1; i>=0; i--){
@@ -308,6 +308,7 @@ void updateQtable(Player *p, int winner){
             defaultQValue(p->state_val, p->state[i]);
         }
         p->state_val[findQValue(p->state[i], p->state_val)]->val += lr * (decay*reward - p->state_val[findQValue(p->state[i], p->state_val)]->val);
+        printf("%d, %f\n", p->state[i],p->state_val[findQValue(p->state[i], p->state_val)]->val);
     }
 }
 
@@ -356,12 +357,10 @@ int check_win(int board[3][3], Game* game){
 
     Coord avail_pos[9];
     int pos_index = availPos(board, avail_pos);
-    // printf("At check_win, available position = %d", pos_index);
     if(pos_index == 0){
         game->game_status = true;
         return 0; // if no winner, game is tie
     }
-    // printf("There is no winner, game contiunes.\n");
     return -99; // Game contiunes
 }
 
@@ -383,7 +382,41 @@ void reset(Player player[2], int board[3][3]){
     }
 }
 
-// paras: board --> convertedBoard, episode - amt of game rounds
+// Save Q-table values to be used
+void savetoCSV(Player *players) {
+    FILE *data = fopen("qtable_data.csv", "w");
+
+    if (data == NULL) {
+        printf("Error: Unable to open file for writing.\n");
+        return;
+    }
+
+    // Header
+    fprintf(data, "cell_1,cell_2,cell_3,cell_4,cell_5,cell_6,cell_7,cell_8,cell_9,Q-Value\n");
+
+    // for (int p = 0; p < 2; p++) {
+    for (int i = 0; i < QTABLE_LENGTH; i++) {
+        if (players[0].state_val[i] != NULL) {
+            // Write each state's key and Q-value
+            for (int j = 0; j < 9; j++) {
+                fprintf(data, "%d", players[0].state_val[i]->key[j]);
+                if (j < 8) fprintf(data, ","); // Add a space between elements
+            }
+            fprintf(data, ",%f\n", players[0].state_val[i]->val);
+        }
+    }
+    // }
+
+    fclose(data);
+}
+
+
+
+void readCSV(){
+
+}
+
+// paras: episode --> number of game rounds for training
 // Training qlearning
 void train(int episode){
     
@@ -403,19 +436,19 @@ void train(int episode){
             game_status: false,
             playing: 1 // players will be represented as 1 or -1
         };
-        reset(players, board);
+        reset(players, board); // reset player states and game board
         printf("New Board:\n");
         printConvertedBoard(board);
 
         while(!game.game_status){   // while game not end
             for(int p=0; p<2; p++){
+                
                 int board1d[9];
                 Coord avail_pos[9];
+                // Get available positions
                 int pos_index = availPos(board, avail_pos);
+                // Choose an grid
                 Coord action = playerAction(avail_pos, pos_index, board, game.playing, players[p]);
-
-
-                // printf("Current Player is %d\n", game.playing);
                 
                 updateBoardState(board, action, &game);
                 
@@ -424,9 +457,6 @@ void train(int episode){
                 boardToString(board, board1d);
 
                 addState(&players[p],board1d);
-
-                // need to switch players manually
-                // printf("New Player is %d\n", game.playing);
 
                 int win = check_win(board, &game);
                 printf("Win int is %d\n", win);
@@ -442,6 +472,7 @@ void train(int episode){
         printConvertedBoard(board); 
 
     }
+    savetoCSV(players);
 }
 
 int main(){
