@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define MAX_STRINGS 10000 // num of string array can hold
 #define MAX_LENGTH 9 // how long of a string it can hold
@@ -92,6 +93,9 @@ void initPlayer(Player *player, float exp_rate){
     printf("Player Initialised\n");
 }
 
+int startingPlayer() {
+    return (rand() % 2 == 0) ? 1 : -1;
+}
 
 // Convert char 2D array to int 2D array for qlearning to understand
 char convertBoard(char board[3][3], int convertedState[3][3]){
@@ -235,7 +239,7 @@ void updateBoardState(int board[3][3], Coord action, Game* game){
     // printf("Updating Board...\n Original player: %d\n", game->playing);
     board[action.row][action.col] = game->playing;
     game->playing = -game->playing; // switch player
-    printf("Board Updated");
+    printf("Board Updated\n");
 }
 
 // Add state to current player
@@ -397,41 +401,12 @@ void reset(Player player[2], int board[3][3]){
     }
 }
 
+
 // Save Q-table values to be used
-void savetoCSV(Qvalue *state_val[QTABLE_LENGTH], const char *filename) {
-    FILE *data = fopen(filename, "w");
-
-    if (data == NULL) {
-        printf("Error: Unable to open file for writing.\n");
-        return;
-    }
-
-    // Header
-    // fprintf(data, "cell_1,cell_2,cell_3,cell_4,cell_5,cell_6,cell_7,cell_8,cell_9,Q-Value\n");
-
-    for(int i=0; i<QTABLE_LENGTH; i++){
-        if(state_val[i] != NULL && state_val[i]->key[0] != 0){
-            for(int j=0; j<9; j++){
-                fprintf(data, "%d,", state_val[i]->key[j]); //get all grid placed and separate with a comma
-            }
-            fprintf(data, "%f\n", state_val[i]->val); // store the q-value
-        }
-    }
-
-    fclose(data);
-    printf("Q-table saved to %s\n", filename);
-}
-
-
-
-void readCSV(){
-
-}
-
 void saveQTable(Qvalue *q_table[QTABLE_LENGTH], const char *filename){
     FILE *file = fopen(filename, "wb");
     if (!file) {
-        perror("Filed to open file for savimg Q-table");
+        perror("Failed to open file for saving Q-table");
         exit(EXIT_FAILURE);
     }
 
@@ -447,6 +422,35 @@ void saveQTable(Qvalue *q_table[QTABLE_LENGTH], const char *filename){
     fclose(file);
     printf("Q-table saved sucessfully to %s\n", filename);
 }
+
+
+void loadQTable(Qvalue *q_table[QTABLE_LENGTH], const char *filename){
+    FILE *file = fopen(filename, "rb");
+
+    if(!file){
+        perror("Failed to open file for loading Q-table");
+        exit(EXIT_FAILURE);
+    }
+
+    for(int i = 0; i< QTABLE_LENGTH; i++){
+        q_table[i] = malloc(sizeof(Qvalue));
+        // check if file is read properly 
+        if (fread(q_table[i]->key, sizeof(int), MAX_LENGTH, file) != MAX_LENGTH){
+            free(q_table[i]); // free memory allocated to avoid memory leak
+            q_table[i] = NULL;
+            break;
+        }
+        if (fread(&q_table[i]->val, sizeof(float), 1, file) != 1){
+            free(q_table[i]);
+            q_table[i] = NULL;
+            break;
+        }
+    }
+
+    fclose(file);
+    printf("Q-table loaded successfully from %s\n", filename);
+}
+
 
 // paras: episode --> number of game rounds for training
 // Training qlearning
@@ -464,9 +468,10 @@ void train(int episode){
 
     for (int i=0; i<episode; i++){
         printf("Training Round %d\n", i+1);
+        // srand(time(NULL)); // Seed the PRNG
         Game game = {
             game_status: false,
-            playing: 1 // players will be represented as 1 or -1
+            playing: startingPlayer() // players will be represented as 1 or -1
         };
         reset(players, board); // reset player states and game board
         printf("New Board:\n");
@@ -479,7 +484,7 @@ void train(int episode){
                 Coord avail_pos[9];
                 // Get available positions
                 int pos_index = availPos(board, avail_pos);
-                // Choose an grid
+                // AI choose an grid
                 Coord action = playerAction(avail_pos, pos_index, board, game.playing, players[p]);
                 
                 updateBoardState(board, action, &game);
@@ -496,7 +501,7 @@ void train(int episode){
                     printf("There's a winner!\n\n");
                     updateQtable(&players[p], win);
                     break;
-                };
+                }
                 
             }
         }  
@@ -504,13 +509,90 @@ void train(int episode){
         printConvertedBoard(board); 
 
     }
-    // savetoCSV(players[0].state_val, "player0_qtable.csv");
+    // Save Q-Table to a binary file
     saveQTable(players[0].state_val, "q_table.bin");
 }
 
-int main(){
+Coord playerMove(Coord position[], int pos_index, int board[3][3], int playerSym){
+    int choosen_row, choosen_col;
+    Bool correct_pos = true;
+    
+    while(correct_pos){
+        printf("Enter row of choice (0 to 2):");
+        scanf("%d", &choosen_row);
+        printf("\nEnter column of choice (0 to 2):");
+        scanf("%d", &choosen_col);
 
-    train(500);
+        for(int i=0; i < pos_index; i++){
+            if(position[i].row == choosen_row && position[i].col == choosen_col){
+                correct_pos = false;
+                return position[i];
+            }
+        }
+        printf("Invalid position. Please try again.\n");
+    }
+}
+
+// Player vs AI game
+void pve(){
+
+    int board[3][3] = {0};
+    Player ai;
+    initPlayer(&ai, 0.2);
+    loadQTable(ai.state_val, "q_table.bin");
+
+    // generate a random num to decide who start first
+
+    Game game = {
+        game_status: false,
+        playing: startingPlayer() // players will be represented as 1 or -1
+    };
+
+
+    while(!game.game_status){
+        int board1d[9];
+        Coord avail_pos[9];
+        int pos_index = availPos(board, avail_pos);
+
+        printConvertedBoard(board);
+
+        // check if it's human's turn
+        if(game.playing == 1){
+            printf("Your Turn\n");
+            Coord action = playerMove(avail_pos, pos_index, board, game.playing);
+            updateBoardState(board, action, &game);
+            printConvertedBoard(board);
+        } else{
+            // AI choose an grid
+            Coord action = playerAction(avail_pos, pos_index, board, game.playing, ai);
+            
+            updateBoardState(board, action, &game);
+            
+            printConvertedBoard(board);            
+        }
+
+        int win = check_win(board, &game);
+        printf("Win int is %d\n", win);
+        if(win != -99){
+            if(win != 0){
+                printf("There's a winner!\n\n");
+            } else {
+                printf("It's a draw!\n\n");
+            }
+            break;
+        }
+
+    }
+
+}
+
+
+int main(){
+    
+    srand(time(NULL)); // Seed the PRNG
+    // train(500);
+
+    pve();
 
     return 0;
 }

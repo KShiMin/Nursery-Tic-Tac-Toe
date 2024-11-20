@@ -1,200 +1,336 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "game_logic.h"
+#include <string.h>
+#include <time.h>
+#include "q_learning.h"
+// #include "game_logic.h"
 // #include "gui.h"
-#include "player_vs_cpu.h"
+// #include "player_vs_cpu.h"
 
 
-// Initialize start of Q-table with zeros
-double qTable[NUM_STATES][NUM_ACTIONS] = {0};
+/***
+ * initPlayer() - initialise a player object
+ */
+void initPlayer(Player *player, float exp_rate){
+    DEBUG_PRINT("Initialising Player...\n");
 
-// Function to convert board state to a unique state ID to store all possible board configuration
-int getState(char board[3][3]){
-    int state = 0;
-    for (int row = 0; row < 3; row ++){
-        for (int col=0; col < 3; col++){
-            int cell_val;
-            if(board[row][col] == '-'){
-                cell_val = 0;
-            } else if (board[row][col] == 'X'){
-                cell_val = 1;
-            } else if (board[row][col] == 'O'){
-                cell_val = 2;
+    // Initialise states
+    memset(player->state, 0, sizeof(player->state));
+
+    // Allocating memory for Q-table entries
+    for(int i = 0; i< QTABLE_LENGTH; i++){
+        player->state_val[i] = malloc(sizeof(Qvalue));
+
+        if(!player->state_val[i]){
+            fprintf(stderr, "Memory allocation failed for Q-table enter %d\n", i);
+            exit(EXIT_FAILURE);
+        }
+
+        memset(player->state_val[i]->key, 0, sizeof(player->state_val[i]->key));
+        player->state_val[i]->val = 0.0f;
+    }
+
+    // Set exploration rate
+    player->exp_rate = exp_rate;
+
+    DEBUG_PRINT("Player initialised successfully\n");
+}
+
+/***
+ * startingPlayer() - determine the starting player randomly
+ */
+int startingPlayer(){
+    return (rand() % 2 == 0) ? 1 : -1;
+}
+
+/***
+ * reset() - reset player states and game board
+ */
+void reset(Player players[2], int board[3][3]){
+    // Reset player states
+    for(int p = 0; p<2; p++){
+        memset(players[p].state, 0, sizeof(players[p].state));
+    }
+
+    // Reset board
+    memset(board, 0, sizeof(int) * 3 * 3);
+}
+
+// Convert char 2D array to int 2D array for qlearning to understand
+char convertBoard(char board[3][3], int convertedState[3][3]){
+    DEBUG_PRINT("Converting Board...\n");
+    for(int i=0; i< 3; i++){
+        for(int j=0; j<3; j++){
+            switch (board[i][j]){
+                case 'X':
+                    convertedState[i][j] = CPU;
+                    break;
+                case 'O':
+                    convertedState[i][j] = HUMAN;
+                    break;
+                case '-':
+                    convertedState[i][j] = BLANK;       
+                    break;
             }
-            state = state * 3 + cell_val; // update possible board statues with unique calculation
-            printf("Q-table[%d][%d] = %.6lf ", row, col, qTable[row][col]);
         }
-    printf("\n");
     }
-    return state;
+    DEBUG_PRINT("Board Converted\n");
 }
 
-int selectAIMove(int state){
-    int random_val = rand();
-    if ((double) random_val/ RAND_MAX < EPSILON){
-        // Allow q-learning to explore by selecting a random action
-        return random_val % NUM_ACTIONS;
-    } else{
-        // Allow q-learning to exploit by selecting know action with the highest Q-value
-        int best_action = 0;
-        double max_q = qTable[state][0];
-        for(int a=1; a < NUM_ACTIONS; a ++){
-            if (qTable[state][a] > max_q){
-                max_q = qTable[state][a];
-                best_action = a;
-            }
-        }
-        return best_action;
-    }
-}
-
-
-// Updates Q-Table
-void updateQ(int state, int action, int reward, int next_state) {
-    // Ensure that the states are within bounds
-    if (state >= NUM_STATES || next_state >= NUM_STATES) {
-        printf("Error: State or next_state out of bounds: state=%d, next_state=%d\n", state, next_state);
-        return;
-    }
-
-    double max_q_next = qTable[next_state][0];
-    for (int a = 1; a < NUM_ACTIONS; a++) {
-        if (qTable[next_state][a] > max_q_next) {
-            max_q_next = qTable[next_state][a];
-        }
-    }
-    double old_q = qTable[state][action];
-    qTable[state][action] += ALPHA * (reward + GAMMA * max_q_next - qTable[state][action]);
-
-    // Print for debugging to verify Q-table updates
-    printf("\nUpdating Q[%d][%d]: Old Q = %.6lf, Reward = %d, New Q = %.6lf\n",
-           state, action, old_q, reward, qTable[state][action]);
-}
-
-
-int assign_reward(int game_state){
-    if (game_state == 1){
-        return 1; // if AI wins, reward with 1 point
-    } else if (game_state == -1){
-        return -1; //if AI lose, deduct it's point
-    } else if (game_state == 0){
-        return 0; // if AI ties, no reward is given
-    } else{
-        return 0; // Contiune game if no winner or drawn found
-    };
-}
-
-
-// Game Logic
-int check_endgame(char board[3][3]){
-    // Checks rows and column for any wins
-    for (int i=0; i<3; i++){
-        if(board[i][0] == board[i][1] && board[i][1] == board[i][2] && board[i][0] != '-'){
-            return (board[i][0] == 'X') ? 1 : -1;
-        }
-        if(board[0][i] == board[1][i] && board[1][i] == board[2][i] && board[0][i] != '-'){
-            return (board[0][i] == 'X') ? 1 : -1;
-        }
-    }
-
-    // Check diagonals for a win
-    if (board[0][0] == board[1][1] && board[1][1] == board[2][2] && board[0][0] != '-') {
-        // combination is = {top left, middle, bottom right}
-        return (board[0][0] == 'X') ? 1 : -1;  // +1 for X win, -1 for O win
-    }
-    if (board[0][2] == board[1][1] && board[1][1] == board[2][0] && board[0][2] != '-') {
-        // combination is = {top right, middle, bottom left}
-        return (board[0][2] == 'X') ? 1 : -1; // +1 for X win, -1 for O win
-    }
-
-    // Check for draw (no empty spaces)
-    int is_draw = 1;  // Assume the board is full
+void printConvertedBoard(int convertedState[3][3]) {
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            if (board[i][j] == '-') {
-                is_draw = 0;  // Found an empty space
+            printf("%d ", convertedState[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
+/***
+ * availPos() - find available positions on the game board
+ */
+int availPos(int board[3][3], Coord availCoord[9]){
+    int index = 0;
+
+    for(int i = 0; i< 3; i++){
+        for(int j=0; j < 3; j++){
+            if(board[i][j] == BLANK){
+                availCoord[index].row = i;
+                availCoord[index].col = j;
+                index++;
+            }
+        }
+    }
+    return index;
+}
+
+/**
+ * aiMove() - AI selection on the board
+ * 
+ */
+Coord aiMove(Coord position[], int pos_index, int board[3][3], int playerSym, Player *p){
+    float max_val = -1e9;
+    Coord best_action = position[0];
+
+    // Exploration
+    if((float)rand() / RAND_MAX < p->exp_rate){
+        int rand_index = rand() % pos_index;
+        return position[rand_index];
+    }
+
+    // Exploitation
+    for(int i = 0; i< pos_index; i++){
+        int nextBoard[3][3];
+        memcpy(nextBoard, board, sizeof(nextBoard)); 
+        nextBoard[position[i].row][position[i].col] = playerSym;
+
+        // Convert board to 1D array for Q-value lookup
+        int board1d[MAX_LENGTH];
+        memcpy(board1d, &nextBoard[0][0], sizeof(board1d));
+
+        // Check Q-value of the action
+        float q_val = 0.0f;
+        for(int j=0; j< QTABLE_LENGTH; j++){
+            if(memcmp(board1d, p->state_val[j]->key, MAX_LENGTH * sizeof(int)) == 0){
+                q_val = p->state_val[j]->val;
                 break;
             }
         }
-        if (!is_draw) break;
+
+        // Update best action based on Q-value
+        if (q_val > max_val){
+            max_val = q_val;
+            best_action = position[i];
+        }
     }
 
-    if (is_draw) {
-        return 0;     // Return 0 for a draw
-    }
-
-    return 2;        // Return 2 if the game is ongoing
+    return best_action;
 }
 
 
-void makeMove(char board[3][3], int action, char player) {
-    printf("At makeMove, action is %d\n", action);
-    int row = action / 3;
-    int col = action % 3;
-    board[row][col] = player;
-    update_board(board, row, col, player);
-    print_board(board);
+
+/**
+ * PlayerMove() - Human selection on the board
+ * 
+ */
+Coord PlayerMove(Coord position[], int pos_index, int board[3][3]){
+    Coord choosen_position;
+    while(1){
+        printf("Enter row (0-2): ");
+        scanf("%d", &choosen_position.row);
+        printf("Enter column (0-2): ");
+        scanf("%d", &choosen_position.col);
+
+        for(int i = 0; i< pos_index; i++){
+            if(position[i].row == choosen_position.row && position[i].col == choosen_position.col){
+                return choosen_position;
+            }
+        }
+        printf("Invalid position. Please try again.\n");
+    }
 }
 
-void train(){
-    printf("Training Started...\n");
-    for (int eps = 0; eps < 10000; eps ++){
-        char board[3][3] = { {'-', '-', '-'}, {'-', '-', '-'}, {'-', '-', '-'} };
-        int state = getState(board);
-        int reward = 0;
-        int done = 0;
-        char player = 'X';  // Start with player X (AI)
+/**
+ * updateBoardState() - Update board after each move
+ * 
+ */
+void updateBoardState(int board[3][3], Coord action, Game *game){
+    board[action.row][action.col] = game->playing;
+    game->playing = -game->playing; // Switch player
+}
 
-        print_board(board);
+/**
+ * check_win() - Check if a player has won the game
+ */
+int check_win(int board[3][3], Game *game){
+    int diag_sum1 = 0, diag_sum2 = 0;
 
-        while(!done){
-            int act, row, col;
-            do{
-                act = selectAIMove(state);
-                printf("action is %d\n", act);
-                row = act/3;
-                col = act%3;
-            } while (board[row][col] != '-');
+    // Check rows and columns and diagonals
+    for (int i=0; i<3; i++){
+        int row_sum = 0, col_sum = 0;
+        
+        for(int j=0; j<3; j++){
+            row_sum += board[i][j];
+            col_sum += board[j][i];
+        }
 
-            makeMove(board, act, player);
+        if(abs(row_sum) == 3 || abs(col_sum) == 3){
+            game->game_status = true;
+            return row_sum > 0 || col_sum > 0 ? HUMAN : CPU;
+        }
 
-            int game_state = check_endgame(board);
-            printf("game state is %d\n", game_state);
-            int reward = assign_reward(game_state);
+        diag_sum1 += board[i][i];
+        diag_sum2 += board[i][2-i];
+    }
 
-            if (game_state !=2){
-                done = 1;
-            }else{
-                player = (player == 'X') ? 'O': 'X';
-            }
+    if (abs(diag_sum1) == 3 || abs(diag_sum2) == 3){
+        game->game_status = true;
+        return diag_sum1 > 0 || diag_sum2 > 0? HUMAN : CPU;
+    }
 
-            int next_state = getState(board);
+    // check for draw
+    Coord avail_pos[9];
+    if(availPos(board, avail_pos) == 0){
+        game->game_status = true;
+        return 0; 
+    }
 
-            if (player == 'X'){
-                printf("Updating Q-table...\n");
-                updateQ(state, act, reward, next_state);
-            }
+    return -99; // Game continues
+}
 
-            state = next_state;
+void saveQTable(Qvalue *q_table[QTABLE_LENGTH], const char *filename){
+    FILE *file = fopen(filename, "wb");
+
+    if(!file){
+        perror("Failed to open file for saving Q-table");
+        exit(EXIT_FAILURE);
+    }
+
+    for(int i = 0; i < QTABLE_LENGTH; i++){
+        if(q_table[i] != NULL){
+            fwrite(q_table[i]->key, sizeof(int), MAX_LENGTH, file);
+            fwrite(&(q_table[i]->val), sizeof(float), 1, file);
+        } 
+    }
+
+    fclose(file);
+    DEBUG_PRINT("Q-table saved successfully to %s\n", filename);
+}
+
+void loadQTable(Qvalue *q_table[QTABLE_LENGTH], const char *filename){
+    FILE *file = fopen(filename, "rb");
+
+    if(!file){
+        perror("Failed to open file for loading Q-table");
+        exit(EXIT_FAILURE);
+    }
+
+    for(int i=0; i< QTABLE_LENGTH; i++){
+        q_table[i] =malloc(sizeof(Qvalue));
+        
+        if(fread(q_table[i]->key, sizeof(int), MAX_LENGTH, file) != MAX_LENGTH || 
+        fread(&(q_table[i]->val), sizeof(float), 1, file) != 1){
+            free(q_table[i]);
+            q_table[i] = NULL;
+            break;
+        }
+    }
+    fclose(file);
+    DEBUG_PRINT("Q-table loaded successfully from %s\n", filename);
+}
+
+void train(int episode){
+    int board[3][3];
+    Player players[2];
+
+    for(int p = 0; p < 2; p++){
+        initPlayer(&players[p], 0.3);
+    }
+
+    for(int i = 0; i < episode; i++){
+        DEBUG_PRINT("Training Round %d\n", i+1);
+        Game game={.game_status = false, .playing=startingPlayer()};
+        reset(players, board);
+
+        while(!game.game_status){
+            int board1d[9];
+            Coord avail_pos[9];
+            int pos_index = availPos(board, avail_pos);
+            Coord action = avail_pos[rand() % pos_index]; // Player picking a random move
+            
+            updateBoardState(board, action, &game);
+
+            printConvertedBoard(board);
+
+            int win = check_win(board, &game);
+
+            if(win!=-99) break;
+        }
+    }
+    saveQTable(players[0].state_val, "q_table.bin");
+}
+
+void pve(){
+    int board[3][3] = {0};
+    Player ai;
+
+    initPlayer(&ai, 0.2);
+    loadQTable(ai.state_val, "q_table.bin");
+    
+    Game game={.game_status = false, .playing=startingPlayer()};
+    
+    while(!game.game_status){
+        int board1d[9];
+        Coord avail_pos[9];
+        int pos_index = availPos(board, avail_pos);
+
+        printConvertedBoard(board);
+
+        if(game.playing == HUMAN){
+            printf("Your Turn:\n");
+            Coord action = PlayerMove(avail_pos, pos_index, board);
+            updateBoardState(board, action, &game);
+        } else{
+            printf("AI's Turn:\n");
+            Coord action = aiMove(avail_pos, pos_index, board, CPU, &ai);
+            updateBoardState(board, action, &game);
+        }
+
+        int winner = check_win(board, &game);
+        if(winner != -99){
+            printf(winner == HUMAN ? "You Win!\n" : winner == CPU ? "AI Wins!\n" : "It's a draw...\n");
+            break;
         }
     }
 }
 
-void qTableResult(){
-    for (int i =0; i< NUM_STATES; i++){
-        printf("State %d: ", i);
-        for (int action = 0; action < NUM_ACTIONS; action++) {
-            printf("%.6lf ", qTable[i][action]);  // Print Q-value with 6 decimal precision
-        }
-        printf("\n");  // Newline after each state for better readability
-    }
-}
 
 int main(){
-    train();
-    printf("Training completed!\n");
-    printf("Q-Table after Training\n");
-    qTableResult();
-    printf("\n");
+    srand(time(NULL));
+
+    train(1000);
+    pve();
+
     return 0;
 }
