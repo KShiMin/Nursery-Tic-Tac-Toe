@@ -6,6 +6,7 @@
 
 #include "raylib.h"         /* Include Raylib GUI external library */
 #include "game_logic.h"     /* Include game_logic header file */
+#include "q_learning.h"     // Include Q learning header file
 
 /* Initialise constants used */
 #define SCREEN_WIDTH 1000       /* Initialise GUI window width */
@@ -41,14 +42,3 @@ void displayCurrentPlayer();
 
 
 #endif
-
-
-
-
-// void draw_boundary()
-// {
-//     DrawLine(0, HEIGHT_OFFSET, SCREEN_WIDTH, HEIGHT_OFFSET, WHITE);
-//     DrawLine(WIDTH_OFFSET, 0, WIDTH_OFFSET, SCREEN_HEIGHT, WHITE);
-//     DrawLine(0, SCREEN_HEIGHT - HEIGHT_OFFSET, SCREEN_WIDTH, SCREEN_HEIGHT - HEIGHT_OFFSET, WHITE);
-//     DrawLine(SCREEN_WIDTH - WIDTH_OFFSET, 0, SCREEN_WIDTH - WIDTH_OFFSET, SCREEN_HEIGHT, WHITE);
-// }
