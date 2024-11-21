@@ -14,12 +14,11 @@ function: print_board
 
 input: board - 3 by 3 2D character array
 ********************************************************/
-void print_board(char board[3][3])
-{
+void print_board(char board[BOARD_SIZE][BOARD_SIZE]) {
     printf("\n\n");
-    printf("%c | %c | %c\n", board[0][0], board[0][1], board[0][2]);    /* Prints first row of board into console */
-    printf("%c | %c | %c\n", board[1][0], board[1][1], board[1][2]);    /* Prints second row of board into console */
-    printf("%c | %c | %c\n", board[2][0], board[2][1], board[2][2]);    /* Prints third row of board into console */
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        printf("%c | %c | %c\n", board[i][0], board[i][1], board[i][2]);
+    }
     printf("\n\n");
 }
 
@@ -31,66 +30,33 @@ input: board - 3 by 3 2D character array
 
 return: status - integer 
 ********************************************************/
-int check_board_status(char board[3][3])
-{
-
-
-    if ((board[0][0] == board[0][1]) && (board[0][1] == board[0][2]) && (board[0][0] != '-'))       /* Checks if top row is not empty("-") and is populated by same player */
-    {
-        winner = (board[0][0] == PLAYER1) ? PLAYER1 : PLAYER2;
-        return STATE_WIN;
-    }
-    if ((board[1][0] == board[1][1]) && (board[1][1] == board[1][2]) && (board[1][0] != '-'))       /* Checks if middle row is not empty("-") and is populated by same player */
-    {
-        winner = (board[1][0] == PLAYER1) ? PLAYER1 : PLAYER2;  // Set winner based on row value
-        return STATE_WIN;
-    }
-    if ((board[2][0] == board[2][1]) && (board[2][1] == board[2][2]) && (board[2][0] != '-'))       /* Checks if bottom row is not empty("-") and is populated by same player */
-    {
-        winner = (board[2][0] == PLAYER1) ? PLAYER1 : PLAYER2;  // Set winner based on row value
-        return STATE_WIN;
-    }
-    if ((board[0][0] == board[1][0]) && (board[1][0] == board[2][0]) && (board[0][0] != '-'))       /* Checks if left column is not empty("-") and is populated by same player */
-    {
-        winner = (board[0][0] == PLAYER1) ? PLAYER1 : PLAYER2;  // Set winner based on column value
-        return STATE_WIN;
-    }
-    if ((board[0][1] == board[1][1]) && (board[1][1] == board[2][1]) && (board[0][1] != '-'))       /* Checks if middle column is not empty("-") and is populated by same player */
-    {
-        winner = (board[0][1] == PLAYER1) ? PLAYER1 : PLAYER2;  // Set winner based on column value
-        return STATE_WIN;
-    }
-    if ((board[0][2] == board[1][2]) && (board[1][2] == board[2][2]) && (board[0][2] != '-'))       /* Checks if right column is not empty("-") and is populated by same player */
-    {
-        winner = (board[0][2] == PLAYER1) ? PLAYER1 : PLAYER2;  // Set winner based on column value
-        return STATE_WIN;
-    }
-    if ((board[0][0] == board[1][1]) && (board[1][1] == board[2][2]) && (board[0][0] != '-'))       /* Checks if top left to bottom right diagonal line is not empty("-") and is populated by same player */
-    {
-        winner = (board[0][0] == PLAYER1) ? PLAYER1 : PLAYER2;  // Set winner based on diagonal value
-        return STATE_WIN;
-    }
-    if ((board[0][2] == board[1][1]) && (board[1][1] == board[2][0]) && (board[0][2] != '-'))       /* Checks if bottom left to top right diagonal line is not empty("-") and is populated by same player */
-    {
-        winner = (board[0][2] == PLAYER1) ? PLAYER1 : PLAYER2;  // Set winner based on diagonal value
-        return STATE_WIN;
-    }
-        
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                if (board[i][j] == '-')         /* Checks if there is empty space in board */
-                {
-
-                    return STATE_PLAYING;   /* There is still empty spaces in the board, play on. Break out of loop by returning status, which is 0*/
-                }
-            }
-
+int check_board_status(char board[BOARD_SIZE][BOARD_SIZE]) {
+    // Check rows and columns for win
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        if ((board[i][0] == board[i][1] && board[i][1] == board[i][2] && board[i][0] != EMPTY) ||
+            (board[0][i] == board[1][i] && board[1][i] == board[2][i] && board[0][i] != EMPTY)) {
+            winner = (board[i][i] == PLAYER1) ? PLAYER1 : PLAYER2;
+            return STATE_WIN;
         }
+    }
 
-        return STATE_DRAW;  /* There are no empty space in board. Set status to 1, indicating a tie */
+    // Check diagonals for win
+    if ((board[0][0] == board[1][1] && board[1][1] == board[2][2] && board[0][0] != EMPTY) ||
+        (board[0][2] == board[1][1] && board[1][1] == board[2][0] && board[0][2] != EMPTY)) {
+        winner = (board[1][1] == PLAYER1) ? PLAYER1 : PLAYER2;
+        return STATE_WIN;
+    }
 
+    // Check for empty spaces
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            if (board[i][j] == EMPTY) {
+                return STATE_PLAYING; // Game is still ongoing
+            }
+        }
+    }
+
+    return STATE_DRAW; // No empty spaces, it's a draw
 }
 
 /********************************************************
@@ -102,9 +68,9 @@ inputs: board - 3 by 3 2D character array
         col - integer column to be updated
         curr_player - player to be updated
 ********************************************************/
-void update_board(char board[3][3], int row, int col, char curr_player)
+void update_board(char board[BOARD_SIZE][BOARD_SIZE], int row, int col, char curr_player)
 {
-    if (board[row][col] == '-')
+    if (board[row][col] == EMPTY)
     {
         board[row][col] = curr_player;
     }
@@ -116,21 +82,20 @@ function: restartBoard
 
 inputs: board
 ********************************************************/
-void restartBoard(char board[3][3]) 
+void restartBoard(char board[BOARD_SIZE][BOARD_SIZE]) 
 {
-    int gameState = STATE_MENU;
+    int gameState;
     gameState = check_board_status(board);
 
     if (gameState == STATE_WIN || gameState == STATE_DRAW) 
     {
-        for (int i = 0; i < 3; i++) 
+        for (int i = 0; i < BOARD_SIZE; i++) 
         {
-            for (int j = 0; j < 3; j++) 
+            for (int j = 0; j < BOARD_SIZE; j++) 
             {
                 board[i][j] = '-';
             }
         }
-        gameState = STATE_PLAYING;
         gameEnded = 0;
         scoreUpdated = 0; /*Reset scoreUpdated for the new game*/
         winner = ' ';
