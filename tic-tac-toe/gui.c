@@ -5,7 +5,7 @@
 char player = O_PLAYER;         /* Initialise player as O. O always starts first */
 int gameMode = PVP;             /* Initialise game mode as PVP */
 int gameState = STATE_MENU;     /* Initialise game state as main menu - GUI shows main menu first*/
-char board[3][3] = {'-', '-', '-', '-', '-', '-', '-', '-', '-'};       /* Initialise empty board */
+char board[3][3] = {EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY};       /* Initialise empty board */
 int num_wins = 0;               /* Initialise number of wins + draws for CPU */
 
 
@@ -59,21 +59,17 @@ void game_start()
         else                                                        /* Game ongoing */                                 
         {
             CheckMouseInput();      /* call CheckMouseInput function */
-        }
 
-        gameState = check_board_status(board);      /* call check_board_status function from game_logic.c. change gameState based on function output */
-        if (gameState == STATE_PLAYING)                             /* Game ongoing */
-        {
-            if (gameMode == PVC && player == X_PLAYER)          /* gameMode is PVC and CPU turn */
-            {
-                /* Call minimax algorithm! */
-            }
-
-            else if (gameMode == PVML && player == X_PLAYER)    /* gameMode is PVML and CPU turn*/
-            {
-                /* Call ML algorithm! */
+            /* call check_board_status function from game_logic.c. change gameState based on function output */
+            if (gameState == STATE_PLAYING && gameMode != PVP && player == X_PLAYER) {
+                if (gameMode == PVC) {              /* gameMode is PVC and CPU turn */
+                    // Call minimax algorithm
+                } else if (gameMode == PVML) {      /* gameMode is PVML and CPU turn*/
+                    // Call ML algorithm
+                }
             }
         }
+
     }
 
 
@@ -115,44 +111,79 @@ void draw_menu()
     DrawText("TIC TAC TOE", 150, 200, 100, WHITE);              /* Draw game title */
     DrawText("Choose a game mode:", 280, 350, 40, WHITE);       /* Draw game mode prompt */
 
-    /* PvP button */
-    Rectangle pvpButton = {215, 450, 550, 70};                  /* Initialise pvpButton */
-    DrawRectangleRec(pvpButton, WHITE);                         /* Draws pvpButton */
-    DrawText("Player vs Player", pvpButton.x + 85, pvpButton.y + 15, 45, BLACK);    /* Draws text on pvpButton */
+    Rectangle buttons[3] = {
+        {215, 450, 550, 70},
+        {215, 600, 550, 70},
+        {215, 750, 550, 70}
+    };
 
-    /* CPU button */
-    Rectangle cpuButton = {215, 600, 550, 70};                  /* Initialise cpuButton */
-    DrawRectangleRec(cpuButton, WHITE);                         /* Draws cpuButton */
-    DrawText("Play with Computer 1", cpuButton.x + 45, cpuButton.y + 15, 45, BLACK);    /* Draws text on cpuButton */
+    const char *labels[3] = {
+        "Player vs Player",
+        "Play with Computer 1",
+        "Play with Computer 2"
+    };
+    
+    const int textOffset[3] = {
+        85,
+        45,
+        45
+    };
 
-    /* CPU ML button*/
-    Rectangle mlButton = {215, 750, 550, 70};                  /* Initialise mlButton */
-    DrawRectangleRec(mlButton, WHITE);                         /* Draws mlButton */
-    DrawText("Play with Computer 2", mlButton.x + 45, mlButton.y + 15, 45, BLACK);      /* Draws text on mlButton */
-
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))               /* Left mouse button pressed */
-    {
-        Vector2 mousePos = GetMousePosition();              /* Gets mouse coordinates, store in mousePos */
-
-        if (CheckCollisionPointRec(mousePos, pvpButton))    /* Mouse coordinates is within pvpButton */
-        {
-            gameMode = PVP;                 /* set gameMode to PVP */
-            gameState = STATE_PLAYING;      /* set gameState to STATE_PLAYING */
-        }
-
-        else if (CheckCollisionPointRec(mousePos, cpuButton))       /* Mouse coordinates is within cpuButton */
-        {
-            gameMode = PVC;                 /* set gameMode to PVC */
-            gameState = STATE_PLAYING;      /* set gameState to STATE_PLAYING */
-        }
-
-        else if (CheckCollisionPointRec(mousePos, mlButton))        /* Mouse coordinates is within mlButton */
-        {
-            gameMode = PVML;                /* set gameMode to PVML */
-            gameState = STATE_PLAYING;      /* set gameState to STATE_PLAYING */
-        }
-
+    for (int i = 0; i < 3; i++) {
+        DrawRectangleRec(buttons[i], WHITE);
+        DrawText(labels[i], buttons[i].x + textOffset[i], buttons[i].y + 15, 45, BLACK);
     }
+
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        Vector2 mousePos = GetMousePosition();
+
+        for (int i = 0; i < 3; i++) {
+            if (CheckCollisionPointRec(mousePos, buttons[i])) {
+                gameMode = i;
+                gameState = STATE_PLAYING;
+                break;
+            }
+        }
+    }
+
+    /* PvP button */
+    // Rectangle pvpButton = {215, 450, 550, 70};                  /* Initialise pvpButton */
+    // DrawRectangleRec(pvpButton, WHITE);                         /* Draws pvpButton */
+    // DrawText("Player vs Player", pvpButton.x + 85, pvpButton.y + 15, 45, BLACK);    /* Draws text on pvpButton */
+
+    // /* CPU button */
+    // Rectangle cpuButton = {215, 600, 550, 70};                  /* Initialise cpuButton */
+    // DrawRectangleRec(cpuButton, WHITE);                         /* Draws cpuButton */
+    // DrawText("Play with Computer 1", cpuButton.x + 45, cpuButton.y + 15, 45, BLACK);    /* Draws text on cpuButton */
+
+    // /* CPU ML button*/
+    // Rectangle mlButton = {215, 750, 550, 70};                  /* Initialise mlButton */
+    // DrawRectangleRec(mlButton, WHITE);                         /* Draws mlButton */
+    // DrawText("Play with Computer 2", mlButton.x + 45, mlButton.y + 15, 45, BLACK);      /* Draws text on mlButton */
+
+    // if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))               /* Left mouse button pressed */
+    // {
+    //     Vector2 mousePos = GetMousePosition();              /* Gets mouse coordinates, store in mousePos */
+
+    //     if (CheckCollisionPointRec(mousePos, pvpButton))    /* Mouse coordinates is within pvpButton */
+    //     {
+    //         gameMode = PVP;                 /* set gameMode to PVP */
+    //         gameState = STATE_PLAYING;      /* set gameState to STATE_PLAYING */
+    //     }
+
+    //     else if (CheckCollisionPointRec(mousePos, cpuButton))       /* Mouse coordinates is within cpuButton */
+    //     {
+    //         gameMode = PVC;                 /* set gameMode to PVC */
+    //         gameState = STATE_PLAYING;      /* set gameState to STATE_PLAYING */
+    //     }
+
+    //     else if (CheckCollisionPointRec(mousePos, mlButton))        /* Mouse coordinates is within mlButton */
+    //     {
+    //         gameMode = PVML;                /* set gameMode to PVML */
+    //         gameState = STATE_PLAYING;      /* set gameState to STATE_PLAYING */
+    //     }
+
+    // }
 }
 
 
@@ -190,7 +221,7 @@ void CheckMouseInput()
             int cellSize = getCellSize();                           /* calls getCellSize function */
             int row = (mousePos.y - GRID_OFFSET) / cellSize;        /* gets the row of the tic tac toe cell selected */
             int col = (mousePos.x - GRID_OFFSET) / cellSize;        /* gets the column of the tic tac toe cell selected */
-            while (board[row][col] == '-')                          /* checks board if selected tic tac toe cell is */
+            while (board[row][col] == EMPTY)                          /* checks board if selected tic tac toe cell is */
             {
                 update_board(board, row, col, player);      /* calls update_board function from game_logic.c */
                 player = (player == X_PLAYER) ? O_PLAYER : X_PLAYER;    /* changes player to the next player */
@@ -214,17 +245,18 @@ void draw_markers()
     {
         for (int j = 0; j < 3; j++)     /* Iterates through columns of board */
         {
-            if (board[i][j] != '-')     /* Cell is not empty */
+            if (board[i][j] != EMPTY)     /* Cell is not empty */
             {
-                if (board[i][j] == 'O')     /* Contents of cell is O */
-                {
-                    draw_o(i, j);       /* Draw O in cell */
-                }
+                (board[i][j] == 'O') ? draw_o(i, j) : draw_x(i, j);
+                // if (board[i][j] == 'O')     /* Contents of cell is O */
+                // {
+                //     draw_o(i, j);      /* Draw O in cell */
+                // }
 
-                else                        /* Contents of cell is X */
-                {
-                    draw_x(i, j);       /* Draw X in cell */
-                }
+                // else                        /* Contents of cell is X */
+                // {
+                //     draw_x(i, j);       /* Draw X in cell */
+                // }
             }
         }
     }

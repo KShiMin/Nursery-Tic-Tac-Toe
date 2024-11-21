@@ -8,16 +8,18 @@
 #include "gui.h"
 #define PLAYER1 'O'
 #define PLAYER2 'X'
+#define EMPTY '-'
+#define BOARD_SIZE 3
 
 extern int player1Score;
 extern int player2Score;
 extern int gameEnded;
 extern char winner;
 
-void print_board(char board[3][3]);
-int check_board_status(char board[3][3]);
-void update_board(char board[3][3], int row, int col, char curr_player);
-void restartBoard(char board[3][3]);
+void print_board(char board[BOARD_SIZE][BOARD_SIZE]);
+int check_board_status(char board[BOARD_SIZE][BOARD_SIZE]);
+void update_board(char board[BOARD_SIZE][BOARD_SIZE], int row, int col, char curr_player);
+void restartBoard(char board[BOARD_SIZE][BOARD_SIZE]);
 void scoreBoard();
 
 
