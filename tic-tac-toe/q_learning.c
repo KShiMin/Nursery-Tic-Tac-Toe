@@ -4,6 +4,8 @@
 #include <time.h>
 #include "q_learning.h"
 
+const float LR = 0.2f;      // Learning rate for Q-value updates
+const float DECAY = 0.9f;   // Decay factor for exploration rate over episodes
 
 /***
  * initPlayer(): Initialize a Player
@@ -156,6 +158,78 @@ int availPos(int board[3][3], Coord availCoord[9]){
     return index;   // Return number of available positions
 }
 
+void defaultQValue(Qvalue *q_table[QTABLE_LENGTH], int state[]) {
+    for (int i = 0; i < QTABLE_LENGTH; i++) {
+        if (q_table[i]->key[0] == 0) { // Check if the key is empty (first element is 0)
+            memcpy(q_table[i]->key, state, MAX_LENGTH * sizeof(int)); // Copy the state
+            q_table[i]->val = 0.0f; // Initialize the Q-value as 0
+            DEBUG_PRINT("Default value set for Q-value at index %d\n", i);
+            return;
+        }
+    }
+    fprintf(stderr, "Error: Q-table is full, cannot add new state.\n");
+    exit(EXIT_FAILURE); // Ensure the program exits gracefully when Q-table is full
+}
+
+
+// find the index of the state in the q table
+int findQValue(int state[MAX_LENGTH], Qvalue *q_table[QTABLE_LENGTH]) {
+    for (int i = 0; i < QTABLE_LENGTH; i++) {
+        if (q_table[i]->key[0] == 0) break; // Stop searching when reaching an empty slot
+        if (memcmp(q_table[i]->key, state, MAX_LENGTH * sizeof(int)) == 0) {
+            return i; // State found
+        }
+    }
+    return -1; // State not found
+}
+
+// Add state to current player
+void addState(Player *p, int board1d[MAX_LENGTH]) {
+    for (int i = 0; i < MAX_STRINGS; i++) {
+        if (p->state[i][0] == 0) { // Find the first empty slot
+            memcpy(p->state[i], board1d, MAX_LENGTH * sizeof(int)); // Copy the state
+            DEBUG_PRINT("State added at index %d\n", i);
+            return;
+        }
+    }
+    fprintf(stderr, "Error: Player state array is full, cannot add new state.\n");
+    exit(EXIT_FAILURE); // Ensure the program exits gracefully when the state array is full
+}
+
+
+// Update Q-table with rewards
+void updateQtable(Player *player, int winner) {
+    float reward = (winner == 1) ? 0.0f : (winner == -1) ? 1.0f : 0.5f; // Define the reward
+    DEBUG_PRINT("Updating Q-table with reward %.2f\n", reward);
+
+    for (int i = MAX_STRINGS - 1; i >= 0; i--) {
+        if (player->state[i][0] == 0) continue; // Skip uninitialized states
+
+        int q_index = findQValue(player->state[i], player->state_val);
+        if (q_index == -1) {
+            defaultQValue(player->state_val, player->state[i]); // Add new state to Q-table
+            q_index = findQValue(player->state[i], player->state_val);
+        }
+
+        // Compute the maximum Q-value for the next state
+        float max_next_q = 0.0f;
+        if (i + 1 < MAX_STRINGS && player->state[i + 1][0] != 0) {
+            int next_q_index = findQValue(player->state[i + 1], player->state_val);
+            if (next_q_index != -1) {
+                max_next_q = player->state_val[next_q_index]->val;
+            }
+        }
+
+        // Apply the Q-learning formula
+        player->state_val[q_index]->val += LR * (reward + DECAY * max_next_q - player->state_val[q_index]->val);
+
+        DEBUG_PRINT("Updated Q-value at index %d: %.2f\n", q_index, player->state_val[q_index]->val);
+        reward *= DECAY; // Propagate reward backward through visited states
+    }
+    DEBUG_PRINT("Q-table updated successfully.\n");
+}
+
+
 /***
  * aiMove(): Select AI's move on the board
  * 
@@ -192,7 +266,7 @@ Coord aiMove(Coord position[], int pos_index, int board[3][3], int playerSym, Pl
         int board1d[MAX_LENGTH];
         memcpy(board1d, &nextBoard[0][0], sizeof(board1d)); // Convert board to 1D array
 
-        // Search Q-table for the corresponding value
+        // Search Q-value for the a given state
         float q_val = 0.0f;
         for(int j=0; j< QTABLE_LENGTH; j++){
             if(memcmp(board1d, p->state_val[j]->key, MAX_LENGTH * sizeof(int)) == 0){
@@ -394,7 +468,7 @@ void trainModel(int episode, int board[3][3]){
 
     // Initialise Players
     for(int p = 0; p < 2; p++){
-        initPlayer(&players[p], 0.3);
+        initPlayer(&players[p], 0.3f);
     }
 
     // Start AI training
@@ -407,19 +481,24 @@ void trainModel(int episode, int board[3][3]){
 
         // Start the game loop until game ends
         while(!game.game_status){
-            Coord avail_pos[9];
-            int pos_index = availPos(board, avail_pos);
-            Coord action = avail_pos[rand() % pos_index]; // Player pick a random move
-            
-            updateBoardState(board, action, &game); // Update board
+            for (int p = 0; p < 2; p++) {
+                Coord avail_pos[9];
+                int pos_index = availPos(board, avail_pos);
+                Coord action = avail_pos[rand() % pos_index]; // Player pick a random move
+                
+                updateBoardState(board, action, &game); // Update board
 
-            printConvertedBoard(board); // Shoe board\
+                int board1d[MAX_LENGTH];
+                memcpy(board1d, &board, sizeof(board1d)); // Convert board to 1D array
+                addState(&players[p], board1d);
 
-            // Check if the game has ended and break
-            int win = check_win(board, &game);
+                // Check if the game has ended and break
+                int win = check_win(board, &game);
 
-            if(win!=-99) {
-                break;
+                if(win!=-99) {
+                    updateQtable(&players[p], win);
+                    break;
+                }
             }
         }
     }
@@ -441,13 +520,14 @@ void pve(int board[3][3]){
     // int board[3][3] = {0};
     Player ai;
 
-    initPlayer(&ai, 0.2);   // Initialise AI with exploration rate
+    initPlayer(&ai, 0.2f);   // Initialise AI with exploration rate
     
     // Load trained Q-table from file and store to AI state_val
     loadQTable(ai.state_val, "q_table.bin"); 
 
     // Initialise game variables and randomly choose a starting player
     Game game={.game_status = false, .playing=startingPlayer()};
+    DEBUG_PRINT("Starting game, initial player: %s\n", game.playing == HUMAN ? "HUMAN" : "CPU");
 
     // Start the game loop until game ends
     while(!game.game_status){
@@ -463,7 +543,7 @@ void pve(int board[3][3]){
             Coord action = PlayerMove(avail_pos, pos_index, board); // get Player move
             updateBoardState(board, action, &game); // Update board
         } else{
-            printf("AI's Turn:\n");
+            DEBUG_PRINT("AI is deciding its move...\n");
             Coord action = aiMove(avail_pos, pos_index, board, CPU, &ai); // get AI move
             updateBoardState(board, action, &game); // Update board
         }
@@ -489,33 +569,35 @@ void pve(int board[3][3]){
  * return:
  *  - action: contains AI selection in row and column (Coordinate)
  */
-Coord guiMLmove(int training, char board[3][3]){
+Coord guiMLmove(char board[3][3]){
     
     int intBoard[3][3];
+
+    srand(time(NULL));      // Seed random number generator for training.
 
     // Convert the character board to integer board for the AI to work with
     convertBoard(board, intBoard);
     
-    // Check if need to train AI model
-    if (training == 1){
-        srand(time(NULL));      // Seed random number generator for training.
-        trainModel(1000, intBoard);   // Train the model with 1000 iterations
-    } else {
+    Player ai;
 
-        Player ai;
+    initPlayer(&ai, 0.2);   // Initialize AI with exploration rate
+    
+    // Load trained Q-table from file and store to AI state_val
+    loadQTable(ai.state_val, "q_table.bin"); 
+    
+    Coord avail_pos[9];
+    int pos_index = availPos(intBoard, avail_pos); // Get available positions
 
-        initPlayer(&ai, 0.2);   // Initialize AI with exploration rate
-        
-        // Load trained Q-table from file and store to AI state_val
-        loadQTable(ai.state_val, "q_table.bin"); 
-        
-        Coord avail_pos[9];
-        int pos_index = availPos(intBoard, avail_pos); // Get available positions
+    // AI decides its next move
+    Coord action = aiMove(avail_pos, pos_index, intBoard, CPU, &ai);
 
-        // AI decides its next move
-        Coord action = aiMove(avail_pos, pos_index, intBoard, CPU, &ai);
+    return action; 
 
-        return action; 
-
-    }
 }
+
+// Uncomment this to train model or play in console/terminal
+// int main(){
+//     int board[3][3] = {0};
+//     trainModel(500, board);
+//     // pve(board);
+// }

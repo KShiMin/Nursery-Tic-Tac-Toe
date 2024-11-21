@@ -7,7 +7,6 @@ int gameMode = PVP;             /* Initialise game mode as PVP */
 int gameState = STATE_MENU;     /* Initialise game state as main menu - GUI shows main menu first*/
 char board[3][3] = {EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY};       /* Initialise empty board */
 int num_wins = 0;               /* Initialise number of wins + draws for CPU */
-int trainMode = 0;              // Initialise if want to train ML model
 
 /********************************************************
 function: getBoundary
@@ -62,13 +61,8 @@ void game_start()
                 // Call minimax algorithm
             } else if (gameMode == PVML) {      /* gameMode is PVML and CPU turn*/
                 
-                // Train the model if trainMode is 1, then disable training.
-                if (trainMode){
-                    Coord action = guiMLmove(trainMode, board);
-                    trainMode = 0; // Stop training.
-                }
                 // Get the AI's move based on the trained model and update the board.
-                Coord action = guiMLmove(trainMode, board); 
+                Coord action = guiMLmove(board); 
                 update_board(board, action.row, action.col, player); 
             }
             // Switch player
