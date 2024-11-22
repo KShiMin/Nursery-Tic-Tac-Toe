@@ -6,6 +6,7 @@
 
 #include "raylib.h"         /* Include Raylib GUI external library */
 #include "game_logic.h"     /* Include game_logic header file */
+#include "player_vs_cpu.h"
 #include "q_learning.h"     // Include Q learning header file
 
 /* Initialise constants used */
@@ -37,7 +38,8 @@ void game_over();
 void restartButton();
 void displayScoreBoard();
 void displayCurrentPlayer();
-
+void downDifficulty();
+void upDifficulty();
 
 
 

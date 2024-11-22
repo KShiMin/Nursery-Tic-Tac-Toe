@@ -99,6 +99,8 @@ void restartBoard(char board[BOARD_SIZE][BOARD_SIZE])
         gameEnded = 0;
         scoreUpdated = 0; /*Reset scoreUpdated for the new game*/
         winner = ' ';
+        // Always reset to O_PLAYER starting first
+        player = O_PLAYER;
     }
 }
 
@@ -121,5 +123,4 @@ void scoreBoard()
         scoreUpdated = 1;
     }
 }
-
 

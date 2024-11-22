@@ -7,6 +7,9 @@ int gameMode = PVP;             /* Initialise game mode as PVP */
 int gameState = STATE_MENU;     /* Initialise game state as main menu - GUI shows main menu first*/
 char board[3][3] = {EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY};       /* Initialise empty board */
 int num_wins = 0;               /* Initialise number of wins + draws for CPU */
+int previousNumWins = -1;  // Track the previous number of wins
+int difficulty = 100;      // Initialise difficulty
+bool increment = true;     // Initialise conditional to increment num_wins
 
 /********************************************************
 function: getBoundary
@@ -53,17 +56,38 @@ void game_start()
         if (gameState == STATE_WIN || gameState == STATE_DRAW)      /* Game over state */
         {
             scoreBoard();       /* call scoreBoard function */
+            if (gameMode == PVC && (gameState == STATE_DRAW || player == O_PLAYER))
+            {
+                // Increment num_wins if CPU wins or Draws
+                if (increment)
+                {
+                    num_wins++;
+                    downDifficulty(); //Scales the difficulty
+                    increment = false;
+                    printf("Wins + Draws by CPU = %d", num_wins);
+                    
+                }
+            }
             game_over();        /* call game_over function */
         }
         /* call check_board_status function from game_logic.c. change gameState based on function output */
         else if (gameState == STATE_PLAYING && gameMode != PVP && player == X_PLAYER){
             if (gameMode == PVC) {              /* gameMode is PVC and CPU turn */
+
+                // Debug information for testing
+                //printf("num_wins before ai() is called in gui.c is %d\n", num_wins);
+
                 // Call minimax algorithm
+                ai(board, num_wins, difficulty);
+                //player = O_PLAYER;  // Switch back to human player
+
             } else if (gameMode == PVML) {      /* gameMode is PVML and CPU turn*/
                 
                 // Get the AI's move based on the trained model and update the board.
-                Coord action = guiMLmove(board); 
+                
+                Coord action = guiMLmove(board);
                 update_board(board, action.row, action.col, player); 
+                
             }
             // Switch player
             player = (player == X_PLAYER) ? O_PLAYER : X_PLAYER; 
@@ -152,7 +176,7 @@ void draw_menu()
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         Vector2 mousePos = GetMousePosition();
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 1; i < 4; i++) {
             if (CheckCollisionPointRec(mousePos, buttons[i])) {
                 gameMode = mode[i]; // Set respective game mode
                 gameState = STATE_PLAYING; // Set game state to playing
@@ -283,9 +307,18 @@ void restartButton()
         Vector2 mousePos = GetMousePosition();      /* Gets mouse coordinates, store in mousePos */
 
         if (CheckCollisionPointRec(mousePos, restartButton))    /* restartButton is clicked */
-        {
+        {   
+            // Increases the difficulty if human wins
+            if(gameMode == PVC){
+                if(winner == O_PLAYER){
+                    upDifficulty();
+                }
+                printf("\nDifficulty is %d%%", difficulty);
+            }
+
             restartBoard(board);            /* call restartBoard function from game_logic.c */
             gameState = STATE_PLAYING;      /* set gameState to STATE_PLAYING */
+            increment = true;  // Reset increment flag
         }
     }
 }
@@ -311,4 +344,32 @@ void displayCurrentPlayer()
     char turnMessage[50];
     sprintf(turnMessage, "Player %c's Turn", player);
     DrawText(turnMessage, 375, 75, 30, RAYWHITE);
+}
+
+void upDifficulty() {
+    if (num_wins > 2)
+    {
+        difficulty += 10;
+    }
+    // Keep difficulty between 0 and 100
+    if (difficulty > 100) difficulty = 100;
+    if (difficulty < 0) difficulty = 0;
+        
+        
+}
+
+void downDifficulty() {
+    if (num_wins > 2)
+    {
+        if(num_wins == 3){
+            difficulty = 50;
+        }
+        else
+        {
+            difficulty -= 10;
+        }
+    }
+    // Keep difficulty between 0 and 100
+    if (difficulty > 100) difficulty = 100;
+    if (difficulty < 0) difficulty = 0;
 }
