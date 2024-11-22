@@ -1,6 +1,6 @@
 /* Define include guards. Ensures contents of this file does not get included more than once*/
-#ifndef PLAYER_VS_CPU_H  /* Run the following if PLAYER_VS_CPU_H has not been defined */
-#define PLAYER_VS_CPU_H  /* Defines PLAYER_VS_PLAYER */
+#ifndef MINIMAX_H  /* Run the following if MINIMAX_H has not been defined */
+#define MINIMAX_H  /* Defines PLAYER_VS_PLAYER */
 
 #include <stdbool.h>
 #include "game_logic.h"
@@ -29,7 +29,7 @@ bool checkWin(GameState* game, int player);
 bool isBoardFull(GameState* game);
 bool makeMove(GameState* game, int row, int col);
 int minimax(GameState* game, int depth, bool isMaximizing);
-void aiMove(GameState* game);
+void mmMove(GameState* game);
 void ai(char board[3][3], int num_wins, int difficulty);
 
 #endif  /* End of header file */

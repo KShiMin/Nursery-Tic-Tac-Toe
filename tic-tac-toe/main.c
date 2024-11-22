@@ -17,6 +17,7 @@ int main()
             game_start();                   /* Call game_start() function from gui.c */
             EndDrawing();                   /* End drawing in GUI */
         }
+    
     CloseWindow();                                              /* Close window */
 
     return 0;                                                   /* Exit program, program has executed successfully. */

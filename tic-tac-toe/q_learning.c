@@ -492,11 +492,12 @@ void trainModel(int episode, int board[3][3]){
                 memcpy(board1d, &board, sizeof(board1d)); // Convert board to 1D array
                 addState(&players[p], board1d);
 
-                // Check if the game has ended and break
+                // Get game status
                 int win = check_win(board, &game);
 
+                // Check if game contiunes (no winner / draw)
                 if(win!=-99) {
-                    updateQtable(&players[p], win);
+                    updateQtable(&players[p], win); // If got winner, update Q-table
                     break;
                 }
             }

@@ -2,8 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h> // For rand()
 #include <time.h>   // For seeding random
-#include "player_vs_cpu.h"
-#include "q_learning.h"
+#include "minimax.h"
 
 
 int training = 1; // Need to train Q-learning model first
@@ -16,21 +15,6 @@ Input:
 void playCPU()
 {
     printf("\n\nSelected game mode: Player Vs CPU");
-}
-
-void qLearn(){
-    printf("\n\nSelected game mode: Q-Learning");
-    int board[3][3]; //converted board since player start first
-    guiInt(training, board);
-    training = 0;
-    
-    // initialise AI player
-    // Player ai;
-    
-    // initPlayer(&ai, 0.2);
-    // loadQTable(ai.state_val, "q_table.bin");
-
-    // pve();
 }
 
 void ai(char board[3][3], int num_wins, int difficulty) {
@@ -60,7 +44,7 @@ void ai(char board[3][3], int num_wins, int difficulty) {
     }
     
     clock_t begin =clock();     /*start timing*/
-    aiMove(&gameState);
+    mmMove(&gameState);
     clock_t end = clock();      /*end timing*/
     time_spent += (double)(end-begin)/CLOCKS_PER_SEC;
     printf("\n Time for CPU to make a move is %f seconds\n",time_spent);
@@ -210,7 +194,7 @@ int minimax(GameState *game, int depth, bool isMaximizing) {
     }
 }
 
-void aiMove(GameState *game) {
+void mmMove(GameState *game) {
     srand(time(0));  // Seed random number generator once at the start
     int bestScore = -1000;
     int secondBestScore = -1000;

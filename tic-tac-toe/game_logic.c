@@ -100,7 +100,7 @@ void restartBoard(char board[BOARD_SIZE][BOARD_SIZE])
         scoreUpdated = 0; /*Reset scoreUpdated for the new game*/
         winner = ' ';
         // Always reset to O_PLAYER starting first
-        player = O_PLAYER;
+        // player = O_PLAYER;
     }
 }
 

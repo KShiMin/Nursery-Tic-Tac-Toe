@@ -92,10 +92,12 @@ void game_start()
             // Switch player
             player = (player == X_PLAYER) ? O_PLAYER : X_PLAYER; 
             print_board(board);
+            
         }
         else                                                        /* Game ongoing */                                 
         {
             CheckMouseInput();      /* call CheckMouseInput function */
+
         }
 
     }
@@ -176,7 +178,7 @@ void draw_menu()
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         Vector2 mousePos = GetMousePosition();
 
-        for (int i = 1; i < 4; i++) {
+        for (int i = 0; i < 3; i++) {
             if (CheckCollisionPointRec(mousePos, buttons[i])) {
                 gameMode = mode[i]; // Set respective game mode
                 gameState = STATE_PLAYING; // Set game state to playing
