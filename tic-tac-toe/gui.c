@@ -74,12 +74,8 @@ void game_start()
         else if (gameState == STATE_PLAYING && gameMode != PVP && player == X_PLAYER){
             if (gameMode == PVC) {              /* gameMode is PVC and CPU turn */
 
-                // Debug information for testing
-                //printf("num_wins before ai() is called in gui.c is %d\n", num_wins);
-
                 // Call minimax algorithm
                 ai(board, num_wins, difficulty);
-                //player = O_PLAYER;  // Switch back to human player
 
             } else if (gameMode == PVML) {      /* gameMode is PVML and CPU turn*/
                 
@@ -114,17 +110,17 @@ function: game_over
 void game_over()
 {
     Rectangle display = {200, 350, 600, 300};       /* Initialise prompt window  */
-
+    Color prompt = {255, 255, 255, 200};
     if (gameState == STATE_WIN)                     /* Game over due to win */
     {
         const char *text = (player == O_PLAYER) ? "Player X Wins!" : "Player O Wins!";      /* Declare message string based on winner */
-        DrawRectangleRec(display, WHITE);       /* Draw prompt window */
+        DrawRectangleRec(display, prompt);       /* Draw prompt window */
         DrawText(text, 250, 450, 70, BLACK);    /* Draw message string */    
     }
 
     else if (gameState == STATE_DRAW)               /* Game over due to draw */
     {
-        DrawRectangleRec(display, WHITE);       /* Draw prompt window */
+        DrawRectangleRec(display, prompt);       /* Draw prompt window */
         DrawText("It's a Draw!", 300, 450, 70, BLACK);      /* Draw prompt window */
     }
     restartButton();    /* Call restartButton function */

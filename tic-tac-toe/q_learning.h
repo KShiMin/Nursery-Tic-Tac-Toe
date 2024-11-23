@@ -4,6 +4,9 @@
 
 #include <stdbool.h>
 #include <stdio.h> // Required for printf
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 /**
  * q_learning.h: Header file for Q-learning Implementation 
@@ -69,7 +72,6 @@ void reset(Player player[2], int board[3][3]);
 int availPos(int board[3][3], Coord availCoord[9]);
 void defaultQValue(Qvalue* q_table[QTABLE_LENGTH], int state[]);
 int findQValue(int state[MAX_LENGTH], Qvalue *q_table[QTABLE_LENGTH]);
-void addState(Player* p, int board1d[9]);
 void updateQtable(Player* player, int winner);
 void updateBoardState(int board[3][3], Coord action, Game *game);
 int check_win(int board[3][3], Game *game);

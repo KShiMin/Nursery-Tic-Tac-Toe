@@ -8,7 +8,7 @@ int main()
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Tic Tac Toe");     /* Initialise GUI window */
 
-    SetTargetFPS(15);                                           /* Set GUI target FPS*/
+    SetTargetFPS(30);                                           /* Set GUI target FPS*/
 
     while (!WindowShouldClose())                                /* Run the code below while user has not requested to close window */
         {

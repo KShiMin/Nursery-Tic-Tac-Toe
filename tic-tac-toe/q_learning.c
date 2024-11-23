@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+
 #include "q_learning.h"
 
 const float LR = 0.2f;      // Learning rate for Q-value updates

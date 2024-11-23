@@ -2,9 +2,13 @@
 #ifndef MINIMAX_H  /* Run the following if MINIMAX_H has not been defined */
 #define MINIMAX_H  /* Defines PLAYER_VS_PLAYER */
 
+#include <stdio.h>
+#include <stdlib.h> // For rand()
+#include <time.h>   // For seeding random
 #include <stdbool.h>
 #include "game_logic.h"
 #include "gui.h"
+
 
 
 #define BOARD_SIZE 3

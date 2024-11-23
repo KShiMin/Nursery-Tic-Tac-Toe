@@ -1,21 +1,9 @@
 /* Define preprocessor statements */
-#include <stdio.h>
-#include <stdlib.h> // For rand()
-#include <time.h>   // For seeding random
+
 #include "minimax.h"
 
 
 int training = 1; // Need to train Q-learning model first
-/********************************************************
-function: playCPU 
-
-Input:
-
-********************************************************/
-void playCPU()
-{
-    printf("\n\nSelected game mode: Player Vs CPU");
-}
 
 void ai(char board[3][3], int num_wins, int difficulty) {
     // Convert the char board to GameState format
