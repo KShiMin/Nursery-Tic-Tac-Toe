@@ -148,9 +148,11 @@ bool isBoardFull(GameState *game) {
 
 // Minimax algorithm
 int minimax(GameState* game, int depth, int alpha, int beta, bool isMaximizing) {
-    // Terminal conditions
+    // Check if player O wins
     if(checkWin(game, PLAYER_O)) return -10 + depth;
+    // Check if player X wins
     if(checkWin(game, PLAYER_X)) return 10 - depth;
+    // Check if no empty cells
     if(isBoardFull(game)) return 0;
 
     if(isMaximizing) {
