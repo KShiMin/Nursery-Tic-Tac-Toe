@@ -69,7 +69,7 @@ typedef struct{
 void initPlayer(Player *player, float exp_rate);
 int startingPlayer();
 void reset(Player player[2], int board[3][3]);
-char convertBoard(char board[3][3], int convertedState[3][3]);
+void convertBoard(char board[3][3], int convertedState[3][3]);
 void printConvertedBoard(int convertedState[3][3]);
 int availPos(int board[3][3], Coord availCoord[9]);
 void defaultQValue(Qvalue* q_table[QTABLE_LENGTH], int state[]);
