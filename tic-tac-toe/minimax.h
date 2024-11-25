@@ -11,26 +11,37 @@
 
 #define BOARD_SIZE 3
 #define EMPTY '-'
-#define PLAYER_O 1
-#define PLAYER_X 2
+// #define PLAYER_O 1
+// #define PLAYER_X 2
+#define PLAYER_O 'O'
+#define PLAYER_X 'X'
 
 extern int previousNumWins;
 extern int difficulty;
 
+// typedef struct {
+//     int board[BOARD_SIZE][BOARD_SIZE];
+//     int currentPlayer;
+//     bool gameOver;
+//     int winner; // If winner = 0, draw, if winner = player --> player wins
+//     int wins;
+//     //int difficulty;
+// } GameState;
+
 typedef struct {
-    int board[BOARD_SIZE][BOARD_SIZE];
-    int currentPlayer;
+    unsigned char board[BOARD_SIZE][BOARD_SIZE];
+    unsigned char currentPlayer;
     bool gameOver;
-    int winner; // If winner = 0, draw, if winner = player --> player wins
+    unsigned char winner; // If winner = 0, draw, if winner = player --> player wins
     int wins;
-    //int difficulty;
 } GameState;
 
 void displayBoard(GameState* game);
-bool checkWin(GameState* game, int player);
+bool checkWin(GameState* game, unsigned char player);
 bool isBoardFull(GameState* game);
 bool makeMove(GameState* game, int row, int col);
-int minimax(GameState* game, int depth, bool isMaximizing);
+// int minimax(GameState* game, int depth, bool isMaximizing);
+int minimax(GameState* game, int depth, int alpha, int beta, bool isMaximizing);
 void mmMove(GameState* game);
 void ai(char board[3][3], int num_wins, int difficulty);
 

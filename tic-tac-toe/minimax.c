@@ -10,39 +10,43 @@ void ai(char board[3][3], int num_wins, int difficulty) {
     gameState.currentPlayer = PLAYER_X;  // CPU is X
     gameState.gameOver = false;          // game ongoing
 
-    double time_spent=0.0;      /*to calculate time for algorithm*/
-    
-    // For debugging
-    // printf("Difficulty is %d%%\n", difficulty);
-    // printf("PreviousNumWins is %d\n", previousNumWins);
+    // // Convert char board to integer board
+    // for(int i = 0; i < BOARD_SIZE; i++) {
+    //     for(int j = 0; j < BOARD_SIZE; j++) {
+    //         if(board[i][j] == 'X') {
+    //             gameState.board[i][j] = PLAYER_X;
+    //         } else if(board[i][j] == 'O') {
+    //             gameState.board[i][j] = PLAYER_O;
+    //         } else {
+    //             gameState.board[i][j] = EMPTY;
+    //         }
+    //     }
+    // }
 
-    // Convert char board to integer board
+    // Copy board to gameState board
     for(int i = 0; i < BOARD_SIZE; i++) {
         for(int j = 0; j < BOARD_SIZE; j++) {
-            if(board[i][j] == 'X') {
-                gameState.board[i][j] = PLAYER_X;
-            } else if(board[i][j] == 'O') {
-                gameState.board[i][j] = PLAYER_O;
-            } else {
-                gameState.board[i][j] = EMPTY;
-            }
+            gameState.board[i][j] = board[i][j];
         }
     }
     
-    //clock_t begin =clock();     /*start timing*/
     mmMove(&gameState);
-    //clock_t end = clock();      /*end timing*/
-    //time_spent += (double)(end-begin)/CLOCKS_PER_SEC;
-    //printf("\n Time for CPU to make a move is %f seconds\n",time_spent);
 
-    // Convert integer board to char board
+    // // Convert integer board to char board
+    // for(int i = 0; i < BOARD_SIZE; i++) {
+    //     for(int j = 0; j < BOARD_SIZE; j++) {
+    //         if(gameState.board[i][j] == PLAYER_X) {
+    //             board[i][j] = 'X';
+    //         } else if(gameState.board[i][j] == PLAYER_O) {
+    //             board[i][j] = 'O';
+    //         }
+    //     }
+    // }
+
+    // Copy board back to original board
     for(int i = 0; i < BOARD_SIZE; i++) {
         for(int j = 0; j < BOARD_SIZE; j++) {
-            if(gameState.board[i][j] == PLAYER_X) {
-                board[i][j] = 'X';
-            } else if(gameState.board[i][j] == PLAYER_O) {
-                board[i][j] = 'O';
-            }
+            board[i][j] = gameState.board[i][j];
         }
     }
 
@@ -94,8 +98,8 @@ bool makeMove(GameState *game, int row, int col) {
     return false;
 }
 
-// Winning Conditions
-bool checkWin(GameState *game, int player) {
+// Check Rows, Columns and Diagonals for win
+bool checkWin(GameState *game, unsigned char player) {
     // Check rows = current player symbol
     for(int i = 0; i < BOARD_SIZE; i++) {
         if(game->board[i][0] == player &&
@@ -130,7 +134,7 @@ bool checkWin(GameState *game, int player) {
     return false;
 }
 
-// Check if no empty cells
+// Check if there are empty cells
 bool isBoardFull(GameState *game) {
     for(int i = 0; i < BOARD_SIZE; i++) {
         for(int j = 0; j < BOARD_SIZE; j++) {
@@ -142,12 +146,11 @@ bool isBoardFull(GameState *game) {
     return true;
 }
 
-int minimax(GameState *game, int depth, bool isMaximizing) {
-    // Check if player O wins
+// Minimax algorithm
+int minimax(GameState* game, int depth, int alpha, int beta, bool isMaximizing) {
+    // Terminal conditions
     if(checkWin(game, PLAYER_O)) return -10 + depth;
-    // Check if player X wins
     if(checkWin(game, PLAYER_X)) return 10 - depth;
-    // Check if no empty cells
     if(isBoardFull(game)) return 0;
 
     if(isMaximizing) {
@@ -156,9 +159,15 @@ int minimax(GameState *game, int depth, bool isMaximizing) {
             for(int j = 0; j < BOARD_SIZE; j++) {
                 if(game->board[i][j] == EMPTY) {
                     game->board[i][j] = PLAYER_X;
-                    int score = minimax(game, depth + 1, false);
+                    int score = minimax(game, depth + 1, alpha, beta, false);
                     game->board[i][j] = EMPTY;
                     bestScore = (score > bestScore) ? score : bestScore;
+                    alpha = (alpha > bestScore) ? alpha : bestScore;
+                    
+                    // Alpha-beta pruning
+                    if(beta <= alpha) {
+                        break;
+                    }
                 }
             }
         }
@@ -170,9 +179,15 @@ int minimax(GameState *game, int depth, bool isMaximizing) {
             for(int j = 0; j < BOARD_SIZE; j++) {
                 if(game->board[i][j] == EMPTY) {
                     game->board[i][j] = PLAYER_O;
-                    int score = minimax(game, depth + 1, true);
+                    int score = minimax(game, depth + 1, alpha, beta, true);
                     game->board[i][j] = EMPTY;
                     bestScore = (score < bestScore) ? score : bestScore;
+                    beta = (beta < bestScore) ? beta : bestScore;
+                    
+                    // Alpha-beta pruning
+                    if(beta <= alpha) {
+                        break;
+                    }
                 }
             }
         }
@@ -180,10 +195,48 @@ int minimax(GameState *game, int depth, bool isMaximizing) {
     }
 }
 
+// int minimax(GameState *game, int depth, bool isMaximizing) {
+//     // Check if player O wins
+//     if(checkWin(game, PLAYER_O)) return -10 + depth;
+//     // Check if player X wins
+//     if(checkWin(game, PLAYER_X)) return 10 - depth;
+//     // Check if no empty cells
+//     if(isBoardFull(game)) return 0;
+
+//     if(isMaximizing) {
+//         int bestScore = -1000;
+//         for(int i = 0; i < BOARD_SIZE; i++) {
+//             for(int j = 0; j < BOARD_SIZE; j++) {
+//                 if(game->board[i][j] == EMPTY) {
+//                     game->board[i][j] = PLAYER_X;
+//                     int score = minimax(game, depth + 1, false);
+//                     game->board[i][j] = EMPTY;
+//                     bestScore = (score > bestScore) ? score : bestScore;
+//                 }
+//             }
+//         }
+//         return bestScore;
+//     }
+//     else {
+//         int bestScore = 1000;
+//         for(int i = 0; i < BOARD_SIZE; i++) {
+//             for(int j = 0; j < BOARD_SIZE; j++) {
+//                 if(game->board[i][j] == EMPTY) {
+//                     game->board[i][j] = PLAYER_O;
+//                     int score = minimax(game, depth + 1, true);
+//                     game->board[i][j] = EMPTY;
+//                     bestScore = (score < bestScore) ? score : bestScore;
+//                 }
+//             }
+//         }
+//         return bestScore;
+//     }
+// }
+
 void mmMove(GameState *game) {
     srand(time(0));  // Seed random number generator once at the start
     int bestScore = -1000;
-    int secondBestScore = -1000;
+    int secondBestScore = -1000;    
     int bestRow = -1;
     int bestCol = -1;
     int secondBestRow = -1;
@@ -193,14 +246,14 @@ void mmMove(GameState *game) {
         for(int j = 0; j < BOARD_SIZE; j++) {
             // Check if each cell is empty
             if(game->board[i][j] == EMPTY) {
-                // If this cell is empty =  ai simulate making their move there
+                // If the cell is empty, ai simulate making their move on it
                 game->board[i][j] = PLAYER_X;
                 // Calculate score
-                int score = minimax(game, 0, false);
+                int score = minimax(game, 0, -1000, 1000, false);
                 // Undo the move
                 game->board[i][j] = EMPTY;
 
-                // Update best and second-best score
+                // Update best and second best score
                 if(score > bestScore) {
                     // second best becomes the lesser scoring move
                     secondBestScore = bestScore;
@@ -236,3 +289,60 @@ void mmMove(GameState *game) {
     }
 
 }
+
+// void mmMove(GameState *game) {
+//     srand(time(0));  // Seed random number generator once at the start
+//     int bestScore = -1000;
+//     int secondBestScore = -1000;
+//     int bestRow = -1;
+//     int bestCol = -1;
+//     int secondBestRow = -1;
+//     int secondBestCol = -1;
+
+//     for(int i = 0; i < BOARD_SIZE; i++) {
+//         for(int j = 0; j < BOARD_SIZE; j++) {
+//             // Check if each cell is empty
+//             if(game->board[i][j] == EMPTY) {
+//                 // If this cell is empty =  ai simulate making their move there
+//                 game->board[i][j] = PLAYER_X;
+//                 // Calculate score
+//                 int score = minimax(game, 0, false);
+//                 // Undo the move
+//                 game->board[i][j] = EMPTY;
+
+//                 // Update best and second-best score
+//                 if(score > bestScore) {
+//                     // second best becomes the lesser scoring move
+//                     secondBestScore = bestScore;
+//                     secondBestRow = bestRow;
+//                     secondBestCol = bestCol;
+
+//                     // best becomes the higher scoring move
+//                     bestScore = score;
+//                     bestRow = i;
+//                     bestCol = j;
+//                 }
+//                 // setting second best to be second best option 
+//                 else if (score > secondBestScore) {
+//                     secondBestScore = score;
+//                     secondBestRow = i;
+//                     secondBestCol = j;
+//                 }
+//             }
+//         }
+//     }
+    
+
+
+//     // Decide based on difficulty to skip the best move and use the second-best one
+//     if (rand() % 100 >= difficulty && secondBestScore != -1000) { // chance to choose second best
+//         bestRow = secondBestRow;
+//         bestCol = secondBestCol;
+//     }
+
+
+//     if(bestRow != -1 && bestCol != -1) {
+//         makeMove(game, bestRow, bestCol);
+//     }
+
+// }

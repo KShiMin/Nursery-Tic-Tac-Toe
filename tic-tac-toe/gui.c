@@ -10,10 +10,10 @@ int num_wins = 0;               /* Initialise number of wins + draws for CPU */
 int previousNumWins = -1;  // Track the previous number of wins
 int difficulty = 100;      // Initialise difficulty
 bool increment = true;     // Initialise conditional to increment num_wins
-int num_moves = 0;
-double total_time = 0;
+int num_moves = 0;         // Number of moves that the AI makes
+double total_time = 0;      
 double avg_time = 0;
-double time_spent=0.0;      /*to calculate time for algorithm*/
+double time_spent=0.0;      // time taken for AI to make a move
 
 /********************************************************
 function: getBoundary
@@ -360,6 +360,7 @@ void displayCurrentPlayer()
     DrawText(turnMessage, 375, 75, 30, RAYWHITE);
 }
 
+// Increase the difficulty if player wins
 void upDifficulty() {
     if (num_wins > 2)
     {
@@ -372,6 +373,7 @@ void upDifficulty() {
         
 }
 
+// Decreases the difficulty if AI continues to win or draw
 void downDifficulty() {
     if (num_wins > 2)
     {
@@ -388,12 +390,13 @@ void downDifficulty() {
     if (difficulty < 0) difficulty = 0;
 }
 
+// Calculate the average time taken for AI to make a move
 void avgCalc(char *algo){
     num_moves++;
     total_time += time_spent;
     if (num_moves == 20){
         avg_time = total_time/num_moves;
-        printf("Average time for %s after 20 moves is %f\n ", algo, avg_time);
+        printf("Average time for %s after 20 moves is %f seconds\n ", algo, avg_time);
     }
     printf("num_moves = %d", num_moves);
 }
