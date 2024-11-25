@@ -197,7 +197,6 @@ void defaultQValue(Qvalue *q_table[QTABLE_LENGTH], int state[]) {
  * return:
  * - int: Index of the state in the Q-table if found, otherwise -1.
  */
-
 int findQValue(int state[MAX_LENGTH], Qvalue *q_table[QTABLE_LENGTH]) {
     for (int i = 0; i < QTABLE_LENGTH; i++) {
         if (q_table[i]->key[0] == 0) break; // Stop searching when reaching an empty slot
@@ -220,7 +219,6 @@ int findQValue(int state[MAX_LENGTH], Qvalue *q_table[QTABLE_LENGTH]) {
  * - int board1d[MAX_LENGTH]: The state to add, represented as a flattened board array.
  * 
  */
-
 void addState(Player *p, int board1d[MAX_LENGTH]) {
     for (int i = 0; i < MAX_STRINGS; i++) {
         if (p->state[i][0] == 0) { // Find the first empty slot
@@ -246,7 +244,6 @@ void addState(Player *p, int board1d[MAX_LENGTH]) {
  * - int winner: The winner of the game (1 for HUMAN, -1 for CPU, 0 for draw).
  * 
  */
-
 void updateQtable(Player *player, int winner) {
     float reward = (winner == 1) ? 0.0f : (winner == -1) ? 1.0f : 0.5f; // Define the reward
     DEBUG_PRINT("Updating Q-table with reward %.2f\n", reward);
