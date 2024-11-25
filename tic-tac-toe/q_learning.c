@@ -462,6 +462,7 @@ void loadQTable(Qvalue *q_table[QTABLE_LENGTH], const char *filename){
 void trainModel(int episode, int board[3][3]){
     // Initialise a array of size 2
     Player players[2];
+    int win1, win2, draw;
 
     // Initialise Players
     for(int p = 0; p < 2; p++){
@@ -494,13 +495,22 @@ void trainModel(int episode, int board[3][3]){
 
                 // Check if game contiunes (no winner / draw)
                 if(win!=-99) {
+                    if (win == HUMAN){
+                        win1 += 1;
+                    } else if (win == CPU){
+                        win2 += 1;
+                    } else{
+                        draw += 1;
+                    }
                     updateQtable(&players[p], win); // If got winner, update Q-table
                     break;
                 }
             }
         }
     }
-    
+    printf("Total Game Player 1 Won = %d\n", win1);
+    printf("Total Game Player 2 Won = %d\n", win2);
+    printf("Total Game Draws = %d\n", draw);
     // Save trained Q-table to file for future use
     saveQTable(players[0].state_val, "q_table.bin");
 }
@@ -597,5 +607,6 @@ Coord guiMLmove(char board[3][3]){
 // int main(){
 //     int board[3][3] = {0};
 //     trainModel(500, board);
-//     // pve(board);
+//     int board2[3][3] = {0};
+//     pve(board2);
 // }

@@ -18,7 +18,7 @@
 
 // Debugging Macro
 // Enables debug message when DEBUG is 1, otherwise debug messages are suppressed
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
     #define DEBUG_PRINT(fmt,...) printf(fmt, ##__VA_ARGS__)
 #else
