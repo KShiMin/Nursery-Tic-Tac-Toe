@@ -101,6 +101,7 @@ void restartBoard(char board[BOARD_SIZE][BOARD_SIZE])
         winner = ' ';
         // Always reset to O_PLAYER starting first
         // player = O_PLAYER;
+        time_spent = 0.0; // Reset time_spent for the new game
     }
 }
 

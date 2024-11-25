@@ -16,6 +16,7 @@ extern int player2Score;
 extern int gameEnded;
 extern char winner;
 extern char player;
+extern double time_spent;
 
 void print_board(char board[BOARD_SIZE][BOARD_SIZE]);
 int check_board_status(char board[BOARD_SIZE][BOARD_SIZE]);

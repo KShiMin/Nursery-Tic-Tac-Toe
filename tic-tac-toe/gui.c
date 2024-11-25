@@ -82,8 +82,8 @@ void game_start()
                 // Call minimax algorithm
                 ai(board, num_wins, difficulty);
                 clock_t end = clock();      /*end timing*/
-                time_spent += (double)(end-begin)/CLOCKS_PER_SEC;
-                //printf("\n Time for CPU to make a move is %f seconds\n",time_spent);
+                time_spent = (double)(end-begin)/CLOCKS_PER_SEC;
+                printf("\n Time for CPU to make a move is %f seconds\n",time_spent);
                 avgCalc();
 
             } else if (gameMode == PVML) {      /* gameMode is PVML and CPU turn*/
