@@ -73,7 +73,7 @@ void saveQTable(Qvalue *q_table[QTABLE_LENGTH], const char *filename);
 void loadQTable(Qvalue *q_table[QTABLE_LENGTH], const char *filename);
 void trainModel(int episode, int board[3][3]);
 void pve(int board[3][3]);
-Coord guiMLmove(int training, char board[3][3]);;
+Coord guiMLmove(char board[3][3]);;
 
 
 #endif
