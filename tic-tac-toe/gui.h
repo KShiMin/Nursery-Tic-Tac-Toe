@@ -8,7 +8,7 @@
 #include "game_logic.h"     /* Include game_logic header file */
 #include "minimax.h"
 #include "q_learning.h"     // Include Q learning header file
-#include <time.h>
+#include <time.h>           // For seed randoming & time calculation
 
 /* Initialise constants used */
 #define SCREEN_WIDTH 1000       /* Initialise GUI window width */
@@ -41,7 +41,6 @@ void displayScoreBoard();
 void displayCurrentPlayer();
 void downDifficulty();
 void upDifficulty();
-
-void avgCalc();
+void avgCalc(char *algo);
 
 #endif

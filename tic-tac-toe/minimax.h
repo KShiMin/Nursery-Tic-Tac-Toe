@@ -4,11 +4,9 @@
 
 #include <stdio.h>
 #include <stdlib.h> // For rand()
-#include <time.h>   // For seeding random
 #include <stdbool.h>
 #include "game_logic.h"
 #include "gui.h"
-
 
 
 #define BOARD_SIZE 3

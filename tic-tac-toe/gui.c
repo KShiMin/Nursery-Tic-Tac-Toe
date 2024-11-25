@@ -79,19 +79,26 @@ void game_start()
             if (gameMode == PVC) {              /* gameMode is PVC and CPU turn */
 
                 clock_t begin =clock();     /*start timing*/
+                
                 // Call minimax algorithm
                 ai(board, num_wins, difficulty);
+                
                 clock_t end = clock();      /*end timing*/
                 time_spent = (double)(end-begin)/CLOCKS_PER_SEC;
-                printf("\n Time for CPU to make a move is %f seconds\n",time_spent);
-                avgCalc();
+                // printf("\n Time for CPU to make a move is %f seconds\n",time_spent);
+                avgCalc("Minimax");
 
             } else if (gameMode == PVML) {      /* gameMode is PVML and CPU turn*/
                 
-                // Get the AI's move based on the trained model and update the board.
+                clock_t begin =clock();     /*start timing*/
                 
+                // Get the AI's move based on the trained model and update the board.
                 Coord action = guiMLmove(board);
-                update_board(board, action.row, action.col, player); 
+                update_board(board, action.row, action.col, player);
+                
+                clock_t end = clock();      /*end timing*/
+                time_spent = (double)(end-begin)/CLOCKS_PER_SEC;
+                avgCalc("Q-learning");
                 
             }
             // Switch player
@@ -381,12 +388,12 @@ void downDifficulty() {
     if (difficulty < 0) difficulty = 0;
 }
 
-void avgCalc(){
+void avgCalc(char *algo){
     num_moves++;
     total_time += time_spent;
     if (num_moves == 20){
         avg_time = total_time/num_moves;
-        printf("Average time after 20 moves is %f\n", avg_time);
+        printf("Average time for %s after 20 moves is %f\n ", algo, avg_time);
     }
     printf("num_moves = %d", num_moves);
 }
