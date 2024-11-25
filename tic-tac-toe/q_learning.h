@@ -69,10 +69,15 @@ typedef struct{
 void initPlayer(Player *player, float exp_rate);
 int startingPlayer();
 void reset(Player player[2], int board[3][3]);
+char convertBoard(char board[3][3], int convertedState[3][3]);
+void printConvertedBoard(int convertedState[3][3]);
 int availPos(int board[3][3], Coord availCoord[9]);
 void defaultQValue(Qvalue* q_table[QTABLE_LENGTH], int state[]);
 int findQValue(int state[MAX_LENGTH], Qvalue *q_table[QTABLE_LENGTH]);
+void addState(Player *p, int board1d[MAX_LENGTH]);
 void updateQtable(Player* player, int winner);
+Coord aiMove(Coord position[], int pos_index, int board[3][3], int playerSym, Player *p);
+Coord playerMove(Coord position[], int pos_index, int board[3][3]);
 void updateBoardState(int board[3][3], Coord action, Game *game);
 int check_win(int board[3][3], Game *game);
 void saveQTable(Qvalue *q_table[QTABLE_LENGTH], const char *filename);

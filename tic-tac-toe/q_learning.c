@@ -297,7 +297,7 @@ Coord aiMove(Coord position[], int pos_index, int board[3][3], int playerSym, Pl
  * return:
  *  - Coord: player's chosen position
  */
-Coord PlayerMove(Coord position[], int pos_index, int board[3][3]){
+Coord playerMove(Coord position[], int pos_index, int board[3][3]){
     Coord choosen_position; // Store player's choosen position
     
     // Loop till a valid position is choosen
@@ -548,7 +548,7 @@ void pve(int board[3][3]){
         // Check if it's human's turn or AI's turn, and get the move from player or AI respectively
         if(game.playing == HUMAN){
             printf("Your Turn:\n");
-            Coord action = PlayerMove(avail_pos, pos_index, board); // get Player move
+            Coord action = playerMove(avail_pos, pos_index, board); // get Player move
             updateBoardState(board, action, &game); // Update board
         } else{
             DEBUG_PRINT("AI is deciding its move...\n");
