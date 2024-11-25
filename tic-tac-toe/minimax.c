@@ -3,8 +3,6 @@
 #include "minimax.h"
 
 
-int training = 1; // Need to train Q-learning model first
-
 void ai(char board[3][3], int num_wins, int difficulty) {
     // Convert the char board to GameState format
     GameState gameState;
@@ -31,11 +29,11 @@ void ai(char board[3][3], int num_wins, int difficulty) {
         }
     }
     
-    clock_t begin =clock();     /*start timing*/
+    //clock_t begin =clock();     /*start timing*/
     mmMove(&gameState);
-    clock_t end = clock();      /*end timing*/
-    time_spent += (double)(end-begin)/CLOCKS_PER_SEC;
-    printf("\n Time for CPU to make a move is %f seconds\n",time_spent);
+    //clock_t end = clock();      /*end timing*/
+    //time_spent += (double)(end-begin)/CLOCKS_PER_SEC;
+    //printf("\n Time for CPU to make a move is %f seconds\n",time_spent);
 
     // Convert integer board to char board
     for(int i = 0; i < BOARD_SIZE; i++) {

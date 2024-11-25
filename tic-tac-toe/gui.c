@@ -10,6 +10,10 @@ int num_wins = 0;               /* Initialise number of wins + draws for CPU */
 int previousNumWins = -1;  // Track the previous number of wins
 int difficulty = 100;      // Initialise difficulty
 bool increment = true;     // Initialise conditional to increment num_wins
+int num_moves = 0;
+double total_time = 0;
+double avg_time = 0;
+double time_spent=0.0;      /*to calculate time for algorithm*/
 
 /********************************************************
 function: getBoundary
@@ -74,8 +78,13 @@ void game_start()
         else if (gameState == STATE_PLAYING && gameMode != PVP && player == X_PLAYER){
             if (gameMode == PVC) {              /* gameMode is PVC and CPU turn */
 
+                clock_t begin =clock();     /*start timing*/
                 // Call minimax algorithm
                 ai(board, num_wins, difficulty);
+                clock_t end = clock();      /*end timing*/
+                time_spent += (double)(end-begin)/CLOCKS_PER_SEC;
+                //printf("\n Time for CPU to make a move is %f seconds\n",time_spent);
+                avgCalc();
 
             } else if (gameMode == PVML) {      /* gameMode is PVML and CPU turn*/
                 
@@ -370,4 +379,14 @@ void downDifficulty() {
     // Keep difficulty between 0 and 100
     if (difficulty > 100) difficulty = 100;
     if (difficulty < 0) difficulty = 0;
+}
+
+void avgCalc(){
+    num_moves++;
+    total_time += time_spent;
+    if (num_moves == 20){
+        avg_time = total_time/num_moves;
+        printf("Average time after 20 moves is %f\n", avg_time);
+    }
+    printf("num_moves = %d", num_moves);
 }
