@@ -66,7 +66,7 @@ void game_start()
                 if (increment)
                 {
                     num_wins++;
-                    downDifficulty(); //Scales the difficulty
+                    downDifficulty(); // Decrease the difficulty if ai wins/draw
                     increment = false;
                     printf("Wins + Draws by CPU = %d", num_wins);
                     
@@ -360,26 +360,34 @@ void displayCurrentPlayer()
     DrawText(turnMessage, 375, 75, 30, RAYWHITE);
 }
 
-// Increase the difficulty if player wins
+/*******************************************************************
+function: upDifficulty
+    increase difficulty based on number of ai wins/draws
+********************************************************************/
 void upDifficulty() {
+    // Only increase difficulty after 2 rounds
     if (num_wins > 2)
     {
         difficulty += 10;
     }
     // Keep difficulty between 0 and 100
     if (difficulty > 100) difficulty = 100;
-    if (difficulty < 0) difficulty = 0;
-        
-        
+    if (difficulty < 0) difficulty = 0;    
 }
 
-// Decreases the difficulty if AI continues to win or draw
+/*******************************************************************
+function: downDifficulty
+    decrease difficulty based on number of ai wins/draws
+********************************************************************/
 void downDifficulty() {
+    // Only decrease difficulty after 2 rounds
     if (num_wins > 2)
     {
+        // Set difficulty to 50 if player does not win after 3 rounds
         if(num_wins == 3){
             difficulty = 50;
         }
+        // Decrease difficulty for every subsequent player loss
         else
         {
             difficulty -= 10;
@@ -390,10 +398,20 @@ void downDifficulty() {
     if (difficulty < 0) difficulty = 0;
 }
 
-// Calculate the average time taken for AI to make a move
+/*******************************************************************
+function: avgCalc
+    calculate the average time taken for algorithm to make a move
+
+    input:
+    algo - Pointer to which Minimax or Q-learning algorithm
+
+    Return:
+    avg_time - average time for algorithm to make a move
+********************************************************************/
 void avgCalc(char *algo){
     num_moves++;
     total_time += time_spent;
+    // Calculate average time taken for a move out of 20 moves
     if (num_moves == 20){
         avg_time = total_time/num_moves;
         printf("Average time for %s after 20 moves is %f seconds\n ", algo, avg_time);
