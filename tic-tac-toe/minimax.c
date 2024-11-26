@@ -19,20 +19,7 @@ void ai(char board[3][3], int num_wins, int difficulty) {
     gameState.currentPlayer = PLAYER_X;  // CPU is X
     gameState.gameOver = false;          // game ongoing
 
-    // // Convert char board to integer board
-    // for(int i = 0; i < BOARD_SIZE; i++) {
-    //     for(int j = 0; j < BOARD_SIZE; j++) {
-    //         if(board[i][j] == 'X') {
-    //             gameState.board[i][j] = PLAYER_X;
-    //         } else if(board[i][j] == 'O') {
-    //             gameState.board[i][j] = PLAYER_O;
-    //         } else {
-    //             gameState.board[i][j] = EMPTY;
-    //         }
-    //     }
-    // }
-
-    // Copy board to gameState board
+    // Copy GUI board to gameState board
     for(int i = 0; i < BOARD_SIZE; i++) {
         for(int j = 0; j < BOARD_SIZE; j++) {
             gameState.board[i][j] = board[i][j];
@@ -41,18 +28,7 @@ void ai(char board[3][3], int num_wins, int difficulty) {
     
     mmMove(&gameState);
 
-    // // Convert integer board to char board
-    // for(int i = 0; i < BOARD_SIZE; i++) {
-    //     for(int j = 0; j < BOARD_SIZE; j++) {
-    //         if(gameState.board[i][j] == PLAYER_X) {
-    //             board[i][j] = 'X';
-    //         } else if(gameState.board[i][j] == PLAYER_O) {
-    //             board[i][j] = 'O';
-    //         }
-    //     }
-    // }
-
-    // Copy board back to original board
+    // Copy board back to GUI board
     for(int i = 0; i < BOARD_SIZE; i++) {
         for(int j = 0; j < BOARD_SIZE; j++) {
             board[i][j] = gameState.board[i][j];
@@ -139,7 +115,7 @@ function: checkWin
 
     Inputs:
     game - Pointer to access all variables in GameState
-    players - player symnbol 'X' or 'O'
+    players - player symbol 'X' or 'O'
 
     Return:
     boolean value - has winning conditions been met
@@ -207,8 +183,8 @@ function: minimax
     Input:
     game - Pointer to access all variables in GameState
     depth - turns in a game
-    alpha - 
-    beta - 
+    alpha - Minimum value achievable by the maximizing player(computer)
+    beta - Maximum value achievable by the minimizing player(human)
     isMaximizing - tell minimax() to simulate for computer or player
 
     Return:
@@ -224,7 +200,7 @@ int minimax(GameState* game, int depth, int alpha, int beta, bool isMaximizing) 
 
     // Maximise score for computer
     if(isMaximizing) {
-        int bestScore = -1000;
+        int bestScore = -1000; 
         // Check every empty cell on board
         for(int i = 0; i < BOARD_SIZE; i++) {
             for(int j = 0; j < BOARD_SIZE; j++) {
@@ -275,44 +251,6 @@ int minimax(GameState* game, int depth, int alpha, int beta, bool isMaximizing) 
         return bestScore;
     }
 }
-
-// int minimax(GameState *game, int depth, bool isMaximizing) {
-//     // Check if player O wins
-//     if(checkWin(game, PLAYER_O)) return -10 + depth;
-//     // Check if player X wins
-//     if(checkWin(game, PLAYER_X)) return 10 - depth;
-//     // Check if no empty cells
-//     if(isBoardFull(game)) return 0;
-
-//     if(isMaximizing) {
-//         int bestScore = -1000;
-//         for(int i = 0; i < BOARD_SIZE; i++) {
-//             for(int j = 0; j < BOARD_SIZE; j++) {
-//                 if(game->board[i][j] == EMPTY) {
-//                     game->board[i][j] = PLAYER_X;
-//                     int score = minimax(game, depth + 1, false);
-//                     game->board[i][j] = EMPTY;
-//                     bestScore = (score > bestScore) ? score : bestScore;
-//                 }
-//             }
-//         }
-//         return bestScore;
-//     }
-//     else {
-//         int bestScore = 1000;
-//         for(int i = 0; i < BOARD_SIZE; i++) {
-//             for(int j = 0; j < BOARD_SIZE; j++) {
-//                 if(game->board[i][j] == EMPTY) {
-//                     game->board[i][j] = PLAYER_O;
-//                     int score = minimax(game, depth + 1, true);
-//                     game->board[i][j] = EMPTY;
-//                     bestScore = (score < bestScore) ? score : bestScore;
-//                 }
-//             }
-//         }
-//         return bestScore;
-//     }
-// }
 
 
 /*******************************************************************
@@ -370,8 +308,6 @@ void mmMove(GameState *game) {
         }
     }
     
-
-
     // Decide to use best or second-best move
     if (rand() % 100 >= difficulty && secondBestScore != -1000) { 
         bestRow = secondBestRow;
@@ -384,60 +320,3 @@ void mmMove(GameState *game) {
     }
 
 }
-
-// void mmMove(GameState *game) {
-//     srand(time(0));  // Seed random number generator once at the start
-//     int bestScore = -1000;
-//     int secondBestScore = -1000;
-//     int bestRow = -1;
-//     int bestCol = -1;
-//     int secondBestRow = -1;
-//     int secondBestCol = -1;
-
-//     for(int i = 0; i < BOARD_SIZE; i++) {
-//         for(int j = 0; j < BOARD_SIZE; j++) {
-//             // Check if each cell is empty
-//             if(game->board[i][j] == EMPTY) {
-//                 // If this cell is empty =  ai simulate making their move there
-//                 game->board[i][j] = PLAYER_X;
-//                 // Calculate score
-//                 int score = minimax(game, 0, false);
-//                 // Undo the move
-//                 game->board[i][j] = EMPTY;
-
-//                 // Update best and second-best score
-//                 if(score > bestScore) {
-//                     // second best becomes the lesser scoring move
-//                     secondBestScore = bestScore;
-//                     secondBestRow = bestRow;
-//                     secondBestCol = bestCol;
-
-//                     // best becomes the higher scoring move
-//                     bestScore = score;
-//                     bestRow = i;
-//                     bestCol = j;
-//                 }
-//                 // setting second best to be second best option 
-//                 else if (score > secondBestScore) {
-//                     secondBestScore = score;
-//                     secondBestRow = i;
-//                     secondBestCol = j;
-//                 }
-//             }
-//         }
-//     }
-    
-
-
-//     // Decide based on difficulty to skip the best move and use the second-best one
-//     if (rand() % 100 >= difficulty && secondBestScore != -1000) { // chance to choose second best
-//         bestRow = secondBestRow;
-//         bestCol = secondBestCol;
-//     }
-
-
-//     if(bestRow != -1 && bestCol != -1) {
-//         makeMove(game, bestRow, bestCol);
-//     }
-
-// }
