@@ -1,4 +1,3 @@
-/*Delete this line*/
 /* Define preprocessor statements */
 #include "minimax.h"
 
