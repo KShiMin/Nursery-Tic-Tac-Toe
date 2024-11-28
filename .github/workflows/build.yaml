@@ -1,0 +1,42 @@
+name: Build Executables
+
+on: 
+  push:
+    tags:
+      - 'v*' # trigger on version tags for releases
+  workflow_dispatch: # Allow manual trigger
+    inputs: 
+      logLevel: 
+        description: 'Log level'
+        required: true 
+        default: 'warning'
+
+jobs: 
+  build: 
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps: 
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.12.5
+        uses: actions/setup-python@v5
+        with: 
+          python-version: '3.12.5'
+        
+      - name: Install PyInstaller 
+        run: pip install pyinstaller 
+
+      - name: Build executable
+        run: |
+          pyinstaller --onefile compiler-tools/compile.py
+          ls -R dist
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with: 
+          name: compile-${{ matrix.os }}
+          path: dist/compile* # match any file in `dist` starting with "compile"
