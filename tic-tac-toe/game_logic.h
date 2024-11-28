@@ -1,10 +1,29 @@
-/* Define include guards. Ensures contents of this file does not get included more than once*/
-#ifndef GAME_LOGIC_H  /* Run the following if PLAYER_VS_CPU_H has not been defined */
-#define GAME_LOGIC_H  /* Defines PLAYER_VS_PLAYER */
+/* Define preprocessor statements */
 
-/* Declare global variables of player_vs_cpu.c file*/
-void print_board(char board[9]);
-int check_board_status(char board[9]);
-void printWinner(char winner);
+/* Define include guards. Ensures contents of this file does not get included more than once */
+#ifndef GAME_LOGIC_H    /* Run the following if GAME_LOGIC_H has not been defined */
+#define GAME_LOGIC_H    /* Defines GAME_LOGIC_H*/
 
-#endif  /* End of header file */
+#include <stdio.h>
+#include "gui.h"
+#define PLAYER1 'O'
+#define PLAYER2 'X'
+#define EMPTY '-'
+#define BOARD_SIZE 3
+
+extern int player1Score;
+extern int player2Score;
+extern int gameEnded;
+extern char winner;
+extern char player;
+extern double time_spent;
+
+void print_board(char board[BOARD_SIZE][BOARD_SIZE]);
+int check_board_status(char board[BOARD_SIZE][BOARD_SIZE]);
+void update_board(char board[BOARD_SIZE][BOARD_SIZE], int row, int col, char curr_player);
+void restartBoard(char board[BOARD_SIZE][BOARD_SIZE]);
+void scoreBoard();
+
+
+
+#endif

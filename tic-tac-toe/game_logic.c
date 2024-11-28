@@ -1,22 +1,24 @@
 /* Define preprocessor statements */
-#include <stdio.h>
-#define PLAYER1 'O'
-#define PLAYER2 'X'
+#include "game_logic.h"
 
+
+int player1Score = 0;      // Track Player 1's score
+int player2Score = 0;      // Track Player 2's score
+int gameEnded = 0;         // Track if the game has ended, 0 means game has not end
+char winner = ' ';         // Store the winner symbol ('O' or 'X'), empty if no winner
+int scoreUpdated = 0;      // Track if the score has been updated for current game
 
 /********************************************************
 function: print_board
-    displays the tic tac toe board
+    displays the tic tac toe board in console
 
-Input: board - array with size of 9
-
+input: board - 3 by 3 2D character array
 ********************************************************/
-void print_board(char board[9])
-{
+void print_board(char board[BOARD_SIZE][BOARD_SIZE]) {
     printf("\n\n");
-    printf("%c | %c | %c\n", board[0], board[1], board[2]);
-    printf("%c | %c | %c\n", board[3], board[4], board[5]);
-    printf("%c | %c | %c\n", board[6], board[7], board[8]);
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        printf("%c | %c | %c\n", board[i][0], board[i][1], board[i][2]);
+    }
     printf("\n\n");
 }
 
@@ -24,58 +26,102 @@ void print_board(char board[9])
 function: check_board_status
     check the board for a winner or loser
 
-Input: board - array with size of 9
-Return: status - integer 0, 1 or 2. 0 - play on, 1 - tie, 2 - win
+input: board - 3 by 3 2D character array
 
+return: status - integer 
 ********************************************************/
-int check_board_status(char board[9])
-{
-    /* Initialise variables */
-    int status = 0;  /*  status of game. 0 indicates play on, 1 indicates tie, 2 indicates win */
-
-
-    if (((board[0] == board[1]) && (board[1] == board[2]) && (board[0] != '-')) ||   /* Checks if top row is not empty("-") and is populated by same player */
-        ((board[3] == board[4]) && (board[4] == board[5]) && (board[3] != '-')) ||   /* Checks if middle row is not empty("-") and is populated by same player */
-        ((board[6] == board[7]) && (board[7] == board[8]) && (board[6] != '-')) ||   /* Checks if bottom row is not empty("-") and is populated by same player */
-        ((board[0] == board[3]) && (board[3] == board[6]) && (board[0] != '-')) ||   /* Checks if left column is not empty("-") and is populated by same player */
-        ((board[1] == board[4]) && (board[4] == board[7]) && (board[1] != '-')) ||   /* Checks if middle column is not empty("-") and is populated by same player */
-        ((board[2] == board[5]) && (board[5] == board[8]) && (board[2] != '-')) ||   /* Checks if right column is not empty("-") and is populated by same player */
-        ((board[0] == board[4]) && (board[4] == board[8]) && (board[0] != '-')) ||   /* Checks if top left to bottom right diagonal line is not empty("-") and is populated by same player */
-        ((board[2] == board[4]) && (board[4] == board[6]) && (board[2] != '-')))     /* Checks if bottom left to top right diagonal line is not empty("-") and is populated by same player */
-
-        {
-            status = 2;  /* Ding ding! There's a winner. Status is set to 2*/
+int check_board_status(char board[BOARD_SIZE][BOARD_SIZE]) {
+    // Check rows and columns for win
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        if ((board[i][0] == board[i][1] && board[i][1] == board[i][2] && board[i][0] != EMPTY) ||
+            (board[0][i] == board[1][i] && board[1][i] == board[2][i] && board[0][i] != EMPTY)) {
+            winner = (board[i][i] == PLAYER1) ? PLAYER1 : PLAYER2;
+            return STATE_WIN;
         }
+    }
 
-    else
-    {
-        for (int i = 0; i < 9; i++)
-        {
-            if (board[i] == '-')   /* Checks if there is empty space in board */
-            {
-                return status;  /* There is still empty spaces in the board, play on. Break out of loop by returning status, which is 0*/
+    // Check diagonals for win
+    if ((board[0][0] == board[1][1] && board[1][1] == board[2][2] && board[0][0] != EMPTY) ||
+        (board[0][2] == board[1][1] && board[1][1] == board[2][0] && board[0][2] != EMPTY)) {
+        winner = (board[1][1] == PLAYER1) ? PLAYER1 : PLAYER2;
+        return STATE_WIN;
+    }
+
+    // Check for empty spaces
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            if (board[i][j] == EMPTY) {
+                return STATE_PLAYING; // Game is still ongoing
             }
         }
-
-        status = 1;  /* There are no empty space in board. Set status to 1, indicating a tie */
     }
 
-    return status;  /* Function returns status */
+    return STATE_DRAW; // No empty spaces, it's a draw
 }
 
-void printWinner(char winner) /*To announce winner or a tie*/
+/********************************************************
+function: update_board
+    updates the tic tac toe game board
+
+inputs: board - 3 by 3 2D character array
+        row - integer row to be updated
+        col - integer column to be updated
+        curr_player - player to be updated
+********************************************************/
+void update_board(char board[BOARD_SIZE][BOARD_SIZE], int row, int col, char curr_player)
 {
-    if (winner == PLAYER1)
+    if (board[row][col] == EMPTY)
     {
-        printf("Player O WINS!\n");
+        board[row][col] = curr_player;
     }
-    else if (winner == PLAYER2)
+}
+
+/********************************************************
+function: restartBoard
+    resets board for a new game
+
+inputs: board
+********************************************************/
+void restartBoard(char board[BOARD_SIZE][BOARD_SIZE]) 
+{
+    int gameState;
+    gameState = check_board_status(board);
+
+    if (gameState == STATE_WIN || gameState == STATE_DRAW) 
     {
-        printf("Player X WINS!\n");
+        for (int i = 0; i < BOARD_SIZE; i++) 
+        {
+            for (int j = 0; j < BOARD_SIZE; j++) 
+            {
+                board[i][j] = '-';
+            }
+        }
+        gameEnded = 0;
+        scoreUpdated = 0; /*Reset scoreUpdated for the new game*/
+        winner = ' ';
+        // Always reset to O_PLAYER starting first
+        // player = O_PLAYER;
+        time_spent = 0.0; // Reset time_spent for the new game
     }
-    else
+}
+
+/********************************************************
+function: scoreBoard
+    update scoreboard based on winner
+********************************************************/
+void scoreBoard() 
+{
+    if (gameState == STATE_WIN && scoreUpdated == 0) 
     {
-        printf("IT'S A TIE!\n");
+        if (winner == PLAYER1) 
+        {
+            player1Score++;
+        } 
+        else if (winner == PLAYER2) 
+        {
+            player2Score++;
+        }
+        scoreUpdated = 1;
     }
 }
 

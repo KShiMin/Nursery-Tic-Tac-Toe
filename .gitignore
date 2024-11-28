@@ -62,7 +62,6 @@ dkms.conf
 !*.*
 !*/
 *.exe
-
 .vscode/
 
 # Ignore compiler script
