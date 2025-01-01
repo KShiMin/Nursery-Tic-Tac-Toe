@@ -3,10 +3,19 @@ This repository is an interactive Tic Tac Toe game aimed at helping young childr
 
 ## Features
 -  Child-Friendly Interface: Simple and colorful UI designed for young children.
--  Single-Player Mode: Enhance logical thinking through challenging plays against an AI opponent.
+-  Single-Player Mode: Enhance logical thinking through challenging plays against two different AI algorithms (Minimax and Q-learning).
 -  Two-Player Mode: Encourages social interaction through turn-based play.
 
-## Game Demo
+## Game GUI
+Starting Page
+
+![image](https://github.com/user-attachments/assets/3bc06f4d-9e8b-432f-8b3c-047e997964a4)
+
+
+Tic Tac Toe Board
+
+![image](https://github.com/user-attachments/assets/bafd4e8b-2435-4fec-9272-29629767648d)
+
 
 
 ## Technology Used
