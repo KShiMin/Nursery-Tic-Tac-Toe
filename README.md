@@ -1,80 +1,65 @@
-# Tic-Tac-Toe-Assignment
-This repository contains C files for a university assignment focused on implementing a Tic Tac Toe game. The project includes various game modes, such as player vs. player and player vs. CPU
+# Nursery Tic Tac Toe
+This repository is an interactive Tic Tac Toe game aimed at helping young children develop motor skills, social skills and logical thinking. 
 
-## Repository Structure 
-``` bash
-.
-├── compile.sh
-├── LICENSE
-├── README.md
-├── test.c
-└── tic-tac-toe
-```
+## Features
+-  Child-Friendly Interface: Simple and colorful UI designed for young children.
+-  Single-Player Mode: Enhance logical thinking through challenging plays against two different AI algorithms (Minimax and Q-learning).
+-  Two-Player Mode: Encourages social interaction through turn-based play.
 
-## Collaboration Guidelines 
-To maintain a smooth workflow, please adhere to the following best practices when collaborating on this repository: 
+## Game GUI
+Starting Page
 
-1. **Branching:**
-    - Do not work direcly on the `main` branch.
-    - For any new feature or part of the assignment, create a new branch based on the `dev branch. Use the following command: 
-        ```bash 
-        git checkout -b <feat_branch> dev
-        ```
-        **Notes:** Do change the `<feat_branch>` to a unique name based on what you are adding to the repo. 
-    - Once your work is complete, create a pull request to merge your changes into the `dev` branch and contact @[KShiMin](https://github.com/KShiMin) to review and merge.
+![image](https://github.com/user-attachments/assets/3bc06f4d-9e8b-432f-8b3c-047e997964a4)
 
-2. **Folder Structure:**
-    - For each new part of the assignment, create a new folder to hold the relevant C files. This helps keep the repository organised and prevents clutter in the main directory.
 
-3. **Commit Messages:**
-    - Use clear and descriptive commit messages. 
-    - Follow this format: 
-        - `feat: Description of the feature`
-        - `fix: Description of the bug fix`
-        - `refactor: Description of the refactoring`
-        - `docs: Description of documentation changes`
+Tic Tac Toe Board
 
-## Using the Auto Compiler 
-The auto compiler is now available as a pre-built executable in the [Releases](https://github.com/KShiMin/Nursey-Tic-Tac-Toe/releases) section of this repository. 
-Follow the steps below to use it: 
+![image](https://github.com/user-attachments/assets/bafd4e8b-2435-4fec-9272-29629767648d)
 
-### Step 1: Download the Appropriate Release
-1. Navigate to the [Releases](https://github.com/KShiMin/Nursey-Tic-Tac-Toe/releases) section of the repository.
-2. Locate the release for your operating system, e.g., `compile-windows-latest.zip`.
-3. Download the `.zip` file that matches your OS (Windows, Linux, or macOS).
 
-### Step 2: Extract and Setup
-1. Extract the contents of the `.zip` file.
-2. Move the `compile.exe` (or equivalent executable) to your working directory where your C files are located. 
 
-### Help Menu
-To view the help menu for the auto compiler script, run: <br>
-**For linux**
+## Technology Used
+- **Language:** C
+- **Graphics Library:** raylib
+- **IDE:** Visual Studio Code
+- **Development Environment:** Linux and Windows
+
+## Installation Guide
+### Prerequisites:
+- C Compiler (e.g., gcc)
+- raylib library installed on your system
+
+### Steps to install and run
+1. Clone this repository
 ```bash
-./compile.sh -h
+git clone https://github.com/KShiMin/Nursery-Tic-Tac-Toe.git
 ```
-**For Windows**
-```bash 
-.\compile.sh -h
-```
-
-### Compilation Options
-- **-h:** Help menu for the script
-- **-f:** Compile and execute a single C file.
-- **-F:** Compile all C files in a specified folder, assuming all files are part of one main system.
-- **-o:** Specify an output file name (optional):
-    - If using `-f`, the output file will default to the file without its extension.
-    - If using `-F`, the output file will take the name of the first file read by the script without its extension.
-
-### Important Note
-The compiler script is designed to work with GCC. It has only been tested using GCC, so ensure you have it installed before using the script.
-
-## Manual Compilation
-To compile a C file manually using GCC, use the following command: 
+2. Navigate to tic-tac-toe folder
 ```bash
-gcc -o <output_filename> <c_file>
+cd tic-tac-toe
 ```
-This is a basic way to compile your C files. It's important to understand how to compile manually, even is you are using the auto compiiler for ease of testing.
+3. Compile the game
+
+   For Windows:
+   ```bash
+   gcc -o <executable_name>.exe main.c gui.c game_logic.c minimax.c q_learning.c -lraylib -lopengl32 -lgdi32 -lwinmm
+   ```
+
+   For Linux:
+   ```bash
+   gcc -o <executable_name> main.c gui.c game_logic.c minimax.c q_learning.c -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+   ```
+4. Run the game
+
+   For Windows:
+   ```bash
+   ./<executable_name>.exe
+   ```
+
+   For Linux:
+   ```bash
+   ./<executable_name>
+   ```
 
 ## License 
 This repository is license under the [MIT License](https://github.com/KShiMin/Nursey-Tic-Tac-Toe/blob/dev/LICENSE).
