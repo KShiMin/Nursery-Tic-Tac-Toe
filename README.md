@@ -1,5 +1,5 @@
 # Nursery Tic Tac Toe
-This repository is an interactive Tic Tac Toe game aimed at helping young children develop motor skills, social skills and logical thinking. 
+This system is an interactive Tic Tac Toe game aimed at helping children develop motor skills, social skills and logical thinking through two game modes, two-player and single-player. The single-player mode utilises Artificial Intelligence such as Minimax and Q-learning. 
 
 ## Features
 -  Child-Friendly Interface: Simple and colorful UI designed for young children.
